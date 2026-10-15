@@ -4,22 +4,23 @@ _Обновлено: 2026-10-16_
 
 ## Текущий этап
 
-**Этап 3 — Реализация.** Готово: **BE-01…BE-05** ✅. Следующий тикет — **BE-06** (REST-сервер `cmd/api`).
+**Этап 3 — Реализация.** Готово: **BE-01…BE-06** ✅ (ядро бэкенда). Следующий тикет — **BE-07** (LLM-клиент, DeepSeek) — понадобится API-ключ DeepSeek для ручной проверки.
 
 | Этап | Статус |
 |---|---|
 | Бэклоги B1–B3 (`backlog/`) | ✅ одобрены; дизайн получен, копия — `design/design-spec.md` |
 | Тикеты BE-01…13, FE-01…10, CM-01 (`tickets/README.md`) | ✅ одобрены вместе с порядком реализации |
-| Реализация | ▶️ BE-01…BE-04 ✅ (PR #1–#4), BE-05 ✅ — ждём коммит/пуш (C7) |
+| Реализация | ▶️ BE-01…BE-05 ✅ (PR #1–#5), BE-06 ✅ — ждём коммит/пуш (C8) |
 
 ## Следующий шаг
 
-1. Пользователь коммитит и пушит BE-05 (C7 в `commits.md`), сливает в `main`.
-2. По сигналу «продолжай» — BE-06.
+1. Пользователь коммитит и пушит BE-06 (C8 в `commits.md`), сливает в `main`.
+2. По сигналу «продолжай» — BE-07. Для ручной проверки нужен `LLM_API_KEY` DeepSeek в `.env` (сам ключ ассистенту не нужен).
 
 ## Локальный запуск инфраструктуры
 
-- `docker compose up -d postgres migrate` — БД + миграции; `docker compose run --rm migrate migrate status|down|reset|up`.
+- `docker compose up -d --build api` — БД + миграции + API на `http://127.0.0.1:8081` (`API_PORT`);
+- `docker compose up -d postgres migrate` — только БД + миграции; `docker compose run --rm migrate migrate status|down|reset|up`.
 - `docker compose down` — остановить (данные в volume `postgres-data`); `down -v` — удалить и данные.
 
 ## Как проверять бэкенд на Windows

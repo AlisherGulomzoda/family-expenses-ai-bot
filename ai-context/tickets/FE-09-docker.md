@@ -8,7 +8,7 @@
 ## Объём
 - `frontend/Dockerfile`: `node:lts-alpine` (`npm ci`, `npm run build`) → `nginx:alpine` с `dist/`.
 - `frontend/nginx.conf`: SPA-fallback на `index.html`; `location /api/` → `proxy_pass http://api:8080`; кэш статики с хэшами (`/assets/` — `immutable`), `index.html` — без кэша; gzip.
-- Сервис `web` в `docker-compose.yml`: порт `8080:80` (порт наружу задаётся в `.env`), `depends_on: api (service_healthy)`.
+- Сервис `web` в `docker-compose.yml`: порт `${WEB_PORT:-8080}:80` (добавить `WEB_PORT` в `.env.example`), `depends_on: api (service_healthy)`; nginx проксирует `/api/` на `http://api:8080` и передаёт `X-Request-ID` (`$request_id`) — API подхватывает его в логи.
 - `.dockerignore` (`node_modules`, `dist`).
 
 ## Критерии приёмки
