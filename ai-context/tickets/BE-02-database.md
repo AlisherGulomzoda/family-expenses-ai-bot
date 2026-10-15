@@ -29,3 +29,15 @@
 
 ## Коммит
 `feat(db): add PostgreSQL schema, goose migrations and compose services`
+
+## Итог реализации (2026-10-16) — ✅ готово
+
+Проверено вручную через compose: `migrate` применяет 3 миграции и завершается с кодом 0; повторный `up` — без ошибок; `status` показывает 3 applied; `down` откатывает одну, `reset` — все (таблиц не остаётся), повторный `up` восстанавливает схему; неизвестная команда → понятная ошибка, код 1. БД отклоняет: сумму 0, категорию `fun`, `source='api'`, `source` = NULL, несуществующего пользователя (FK). Линтер — 0 замечаний, тесты проходят.
+
+Отличия от плана:
+- Команды `migrate`: `up` (по умолчанию), `down` — **одна** миграция (привычно для goose), `reset` — **все**, `status`.
+- Используется goose **Provider API** (без глобального состояния); `postgres.NewMigrator` переиспользуется в интеграционных тестах BE-05. Тест «up → reset → up» на testcontainers — тоже в BE-05.
+- `id` — `GENERATED ALWAYS AS IDENTITY` вместо `BIGSERIAL` (современный стандарт Postgres).
+- Добавлен `CHECK (char_length(comment) <= 500)` — дублирует валидацию домена на уровне БД; индексы с вторичным `id DESC` для стабильной пагинации.
+- `DATABASE_URL` для контейнеров собирается в compose из `POSTGRES_*` (не рассинхронизируются); в `.env` он только для запуска вне Docker. Postgres опубликован на `127.0.0.1:5432`.
+- Добавлен `.gitattributes` (`eol=lf`): при `core.autocrlf=true` git на Windows выдавал CRLF, на что ругается `gofmt`; shell-скрипты в Linux-контейнерах с CRLF ломаются.

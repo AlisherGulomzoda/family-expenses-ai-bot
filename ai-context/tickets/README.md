@@ -9,7 +9,7 @@
 | ID | Тикет | Зависит от | Оценка | Статус |
 |---|---|---|---|---|
 | [BE-01](BE-01-skeleton.md) | Каркас Go-проекта, конфиг, логи, Dockerfile, Makefile | — | 2 ч | ✅ |
-| [BE-02](BE-02-database.md) | PostgreSQL, миграции (+ `source`), compose (postgres + migrate) | BE-01 | 2 ч | ⚪ |
+| [BE-02](BE-02-database.md) | PostgreSQL, миграции (+ `source`), compose (postgres + migrate) | BE-01 | 2 ч | ✅ |
 | [BE-03](BE-03-openapi.md) | Контракт REST API — `openapi.yaml` | BE-01 | 1.5 ч | ⚪ |
 | [BE-04](BE-04-domain-service.md) | Домен и сервис: траты, пользователи, деньги, `source`, изоляция по владельцу | BE-01 | 3 ч | ⚪ |
 | [BE-05](BE-05-repository.md) | Репозиторий на pgx + sqlc, интеграционные тесты, тест изоляции | BE-02, BE-04 | 3 ч | ⚪ |
