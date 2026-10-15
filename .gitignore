@@ -1,0 +1,15 @@
+# Personal notes (recruiter letter, conditions) — never commit
+ai-context/private/
+
+# Original task text belongs to the company — summarized in README instead
+test-task-expenses.md
+
+# Secrets
+.env
+*.env.local
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
