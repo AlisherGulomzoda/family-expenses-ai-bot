@@ -122,14 +122,17 @@ func (r Expenses) Update(_ context.Context, id int64, owner *int64, in expense.U
 	s := r.s
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	// An unknown new owner is reported before "not found", as in PostgreSQL.
+	if in.UserID != nil {
+		if _, ok := s.users[*in.UserID]; !ok {
+			return expense.Expense{}, unknownUser()
+		}
+	}
 	row, err := s.find(id, owner)
 	if err != nil {
 		return expense.Expense{}, err
 	}
 	if in.UserID != nil {
-		if _, ok := s.users[*in.UserID]; !ok {
-			return expense.Expense{}, unknownUser()
-		}
 		row.UserID = *in.UserID
 	}
 	if in.Amount != nil {
