@@ -1,0 +1,6 @@
+extends:
+  - recommended
+
+rules:
+  # listUsers, listCategories and healthz take no input, so they have no honest 4xx response.
+  operation-4xx-response: off
