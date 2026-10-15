@@ -42,3 +42,15 @@
 
 ## Коммит
 `chore(backend): scaffold Go project with config, logging and Dockerfile`
+
+## Итог реализации (2026-10-16) — ✅ готово
+
+Проверено: `go build`, `go vet`, `go test` (в контейнере `golang:1.27-alpine`), `golangci-lint v2.14.0` — 0 замечаний; образ 25.5 МБ; `api`/`bot` стартуют и завершаются с кодом 0 по SIGTERM; без `DATABASE_URL` — `required environment variable "DATABASE_URL" is not set`, код 1.
+
+Отличия от плана:
+- `Eval` не требует `DATABASE_URL` — eval работает на in-memory хранилище (BE-11).
+- Ошибки **разбора** значения называют поле структуры (`AllowedIDs`) и плохое значение, а не имя переменной — так устроена библиотека; ошибки **отсутствия** переменной называют саму переменную.
+- Цели `sqlc` и `eval` в Makefile появятся в BE-05 и BE-11; добавлена `test-docker`.
+- Пустые директории (`internal/...`, `migrations/`, `api/`, `eval/`) git не хранит — появятся в своих тикетах.
+- `time/tzdata` встроен в бинарники: в distroless нет системной базы часовых поясов.
+- Staticcheck `QF1008` отключён: явное `cfg.LLM.Model` читается лучше, чем `cfg.Model`.

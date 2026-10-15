@@ -1,0 +1,5 @@
+bin/
+eval/reports/
+*.test
+*.out
+.env
