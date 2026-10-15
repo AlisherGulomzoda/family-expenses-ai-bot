@@ -4,18 +4,18 @@ _Обновлено: 2026-10-16_
 
 ## Текущий этап
 
-**Этап 3 — Реализация.** Готово: **BE-01** ✅, **BE-02** ✅, **BE-03** ✅. Следующий тикет — **BE-04** (домен и сервис).
+**Этап 3 — Реализация.** Готово: **BE-01…BE-04** ✅. Следующий тикет — **BE-05** (репозиторий на pgx + sqlc).
 
 | Этап | Статус |
 |---|---|
 | Бэклоги B1–B3 (`backlog/`) | ✅ одобрены; дизайн получен, копия — `design/design-spec.md` |
 | Тикеты BE-01…13, FE-01…10, CM-01 (`tickets/README.md`) | ✅ одобрены вместе с порядком реализации |
-| Реализация | ▶️ BE-01 ✅ (PR #1), BE-02 ✅ (PR #2), BE-03 ✅ — ждём коммит/пуш (C5) |
+| Реализация | ▶️ BE-01 ✅ (PR #1), BE-02 ✅ (PR #2), BE-03 ✅ (PR #3), BE-04 ✅ — ждём коммит/пуш (C6) |
 
 ## Следующий шаг
 
-1. Пользователь коммитит и пушит BE-03 (C5 в `commits.md`), сливает в `main`.
-2. По сигналу «продолжай» — BE-04.
+1. Пользователь коммитит и пушит BE-04 (C6 в `commits.md`), сливает в `main`.
+2. По сигналу «продолжай» — BE-05 (см. «Уточнения после BE-04» в тикете).
 
 ## Локальный запуск инфраструктуры
 
@@ -25,7 +25,7 @@ _Обновлено: 2026-10-16_
 ## Как проверять бэкенд на Windows
 
 Windows Smart App Control блокирует запуск свежесобранных тестовых `.exe` (`An Application Control policy has blocked this file`). Поэтому тесты и линтер гоняем в Docker:
-- тесты: `docker run --rm -v "<путь>/backend:/src" -w /src golang:1.27-alpine go test -count=1 ./...`
+- тесты: `docker run --rm -v "<путь>/backend:/src" -v gomodcache:/go/pkg/mod -w /src golang:1.27 go test -race -count=1 ./...` (Debian-образ: в alpine нет cgo для `-race`; volume `gomodcache` кэширует модули)
 - линтер: `docker run --rm -v "<путь>/backend:/src" -w /src golangci/golangci-lint:v2.14.0 golangci-lint run ./...`
 - в Git Bash перед командой нужен `MSYS_NO_PATHCONV=1`. `make` на машине пользователя не установлен — Makefile для Linux/macOS и проверяющих.
 - У пользователя `core.autocrlf=true`; в репо есть `.gitattributes` с `eol=lf`. Если `gofmt -l` вдруг показывает много файлов — проверить `git ls-files --eol` на `w/crlf`.
