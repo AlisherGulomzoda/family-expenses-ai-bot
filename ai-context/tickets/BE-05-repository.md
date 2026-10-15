@@ -19,6 +19,14 @@
   - `ChatHistoryRepo`: `Append(userID, messages...)`, `Last(userID, n)` (в хронологическом порядке).
   - Маппинг ошибок pgx (`pgx.ErrNoRows` → `ErrNotFound`, FK violation по `user_id` → `ValidationError{"user_id": "неизвестный пользователь"}`).
 
+## Уточнения после BE-04 (повторить семантику `internal/memstore` 1:1)
+- Сигнатуры — из `expense.Repository` (BE-04): `Update(ctx, id, owner, UpdateInput)`, `Delete` **возвращает** удалённую трату (`DELETE ... RETURNING`), `UserName` — через JOIN с `users`.
+- `UpdateInput.Comment`: `nil` — не менять, `""` — NULL, иначе — значение; `updated_at = now()`.
+- Неизвестный `user_id` (FK, и в Create, и в Update) → `&expense.ValidationError{Fields: {"user_id": "Неизвестный член семьи"}}`.
+- `Summary.ByCategory`: `ORDER BY total DESC`, при равенстве — порядок категорий (`array_position` по списку кодов); пустой результат — `[]`, не `nil`.
+- `UserRepo.List` — `ORDER BY name, telegram_id`. `Exists` не нужен.
+- Хорошо бы общий набор контрактных тестов, который гоняется и против memstore, и против Postgres.
+
 ## Тесты (testcontainers-go, `postgres:17-alpine`, миграции из BE-02)
 - [ ] CRUD-цикл траты.
 - [ ] Каждый фильтр отдельно и в комбинации; период включительный по обеим границам.

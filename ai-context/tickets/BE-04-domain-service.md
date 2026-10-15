@@ -35,3 +35,22 @@
 
 ## Коммит
 `feat(expense): add domain model, money type and user-scoped service`
+
+## Итог реализации (2026-10-16) — ✅ готово
+
+Проверено: `go test -race` — всё зелёное (покрытие: expense 88.5%, user 100%, memstore 73%, config 92%); `golangci-lint` — 0 замечаний.
+
+Что получилось (важно для следующих тикетов):
+- **Изоляция в типах**: `UserScope.Create(Draft)` — у `Draft` нет поля владельца; `UserScope.Update(Patch)` — `Patch` не умеет менять владельца (это умеет только админский `UpdateInput{UserID, Patch}`); `List/Summary` перезаписывают `Filter.UserID`; Get/Update/Delete передают `owner` в репозиторий. Чужая трата → `ErrNotFound`.
+- **Интерфейс репозитория** (реализует BE-05): `Create(NewExpense)`, `Get/Update/Delete(id, owner *int64, ...)`, `Update` принимает `UpdateInput`, **`Delete` возвращает удалённую трату** (бот скажет, что удалил), `List/Count/Summary(Filter)`. `Filter` приходит уже нормализованным.
+- **Даты** — `time.Time` в полночь UTC (как `DATE` в pgx); «сегодня» = `clock.Today(clock, loc)` в часовом поясе из конфига. Пакет `internal/clock` (`System`, `Fixed`).
+- **Money**: парсинг «350», «349,90», «1 200» без float; `Rubles()` для JSON (`350.5`), `String()` для людей («1 200 ₽», неразрывные пробелы), JSON принимает только число.
+- **Комментарий**: пробелы обрезаются; в `Draft` пустой → `nil`; в `Patch` пустой → `""` = «очистить» (репозиторий ставит NULL).
+- **Тексты ошибок валидации** — по-русски, ключи = поля API / query-параметры.
+- **`internal/memstore`** — in-memory `Users()` / `Expenses()` с семантикой Postgres; используется в тестах и пойдёт в eval (BE-11) и тесты агента (BE-08/09).
+- Архитектурный тест `deps_test.go`: домен импортирует только stdlib и `internal/clock`.
+
+Отличия от плана:
+- `user.Repository` без `Exists` — не понадобился: неизвестный `user_id` ловит FK (в memstore — та же ошибка `ValidationError{user_id}`).
+- `user.Service.Upsert` подставляет имя, если в профиле Telegram его нет (`@username` или «Пользователь <id>»).
+- Найден и исправлен баг в memstore до коммита: `Get` отдавал указатель на хранимый комментарий — тест `TestReturnedValuesAreCopies`.
