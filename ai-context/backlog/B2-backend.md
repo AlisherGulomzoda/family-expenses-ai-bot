@@ -67,6 +67,7 @@ expenses (
   category      TEXT NOT NULL CHECK (category IN ('food','transport','housing','entertainment','health','shopping','other')),
   spent_at      DATE NOT NULL,
   comment       TEXT,
+  source        TEXT NOT NULL CHECK (source IN ('bot','web')),   -- откуда создана (D22)
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 )
@@ -93,7 +94,8 @@ chat_messages (                         -- память диалога аген�
 |---|---|---|
 | GET | `/api/users` | Члены семьи (для фильтра и формы) |
 | GET | `/api/categories` | Коды + русские названия |
-| GET | `/api/expenses?user_id=&from=&to=&category=&limit=&offset=` | Список с фильтрами и пагинацией, + `total` и сумма |
+| GET | `/api/expenses?user_id=&from=&to=&category=&sort=&order=&limit=&offset=` | Список с фильтрами, сортировкой (`spent_at` / `amount` / `created_at`, `asc`/`desc`; whitelist полей) и пагинацией, + `total` |
+| GET | `/api/expenses/summary?user_id=&from=&to=&category=` | Итог по тем же фильтрам: общая сумма, количество, разбивка по категориям (для карточек и диаграммы, добавлено после B3) |
 | POST | `/api/expenses` | Создать |
 | GET | `/api/expenses/{id}` | Получить |
 | PUT | `/api/expenses/{id}` | Изменить |
