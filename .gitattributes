@@ -1,0 +1,7 @@
+# Always check out text files with LF: Go tooling, Dockerfiles and shell
+# scripts inside Linux containers expect LF even on Windows.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.woff2 binary

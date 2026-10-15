@@ -1,0 +1,42 @@
+name: family-expenses
+
+# Shared settings of the backend image (one image, several binaries).
+x-backend: &backend
+  build: ./backend
+  image: family-expenses-backend:local
+  env_file:
+    - path: .env
+      required: false
+  environment: &backend-env
+    # Built from the POSTGRES_* variables so the two never get out of sync.
+    DATABASE_URL: postgres://${POSTGRES_USER:-expenses}:${POSTGRES_PASSWORD:-expenses}@postgres:5432/${POSTGRES_DB:-expenses}?sslmode=disable
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-expenses}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-expenses}
+      POSTGRES_DB: ${POSTGRES_DB:-expenses}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    # Published on localhost only: for local `go run` and psql.
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    restart: unless-stopped
+
+  migrate:
+    <<: *backend
+    command: ["migrate", "up"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  postgres-data:
