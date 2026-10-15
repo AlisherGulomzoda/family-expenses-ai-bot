@@ -13,7 +13,7 @@
 - Шрифт **Onest** 400/500/600/700: выгрузить `fonts/Onest-*.woff2` из дизайн-системы (https://claude.ai/code/artifact/48d056c2-5924-4259-92c5-5f30842fc16e) в `frontend/public/fonts/`, `@font-face` из спецификации. Лицензия OFL — файл лицензии рядом.
 - **next-themes** (`attribute="class"`, `defaultTheme="system"`), провайдер в `main.tsx`.
 - Провайдеры: `QueryClientProvider` (TanStack Query, `retry: 1`, `refetchOnWindowFocus: false`), `Toaster` (sonner), `TooltipProvider`.
-- `vite.config.ts`: dev-proxy `/api` → `http://localhost:8080`.
+- `vite.config.ts`: dev-proxy `/api` → `http://localhost:8081` (API опубликован на `127.0.0.1:${API_PORT:-8081}`, см. BE-06; 8080 занят панелью `web`).
 - ESLint (typescript-eslint, react-hooks, jsx-a11y) + Prettier (+ `prettier-plugin-tailwindcss`), Vitest + RTL + jsdom.
 - `package.json` scripts: `dev`, `build`, `preview`, `lint`, `typecheck`, `test`, `gen:api`.
 

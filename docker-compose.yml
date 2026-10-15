@@ -38,5 +38,23 @@ services:
         condition: service_healthy
     restart: "no"
 
+  api:
+    <<: *backend
+    command: ["api"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    # Browsers reach the API through the web service (nginx, /api).
+    # Published on localhost only: for the Vite dev server and curl.
+    ports:
+      - "127.0.0.1:${API_PORT:-8081}:8080"
+    healthcheck:
+      # The distroless image has no curl: the binary checks itself.
+      test: ["CMD", "api", "healthcheck"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
 volumes:
   postgres-data:
