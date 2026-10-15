@@ -5,7 +5,7 @@ IMAGE := family-expenses-backend
 -include ../.env
 export
 
-.PHONY: build test test-docker lint fmt run-api run-bot docker-build
+.PHONY: build test test-docker lint api-lint fmt run-api run-bot docker-build
 
 build: ## Build all binaries into ./bin
 	go build -o bin/ ./cmd/...
@@ -18,6 +18,9 @@ test-docker: ## Run unit tests in a Linux container (no local Go needed)
 
 lint: ## Run golangci-lint (via Docker, no local install needed)
 	docker run --rm -v "$(CURDIR):/src" -w /src golangci/golangci-lint:$(GOLANGCI_LINT_VERSION) golangci-lint run ./...
+
+api-lint: ## Validate the OpenAPI contract (via Docker)
+	docker run --rm -v "$(CURDIR)/api:/spec" -w /spec redocly/cli:2.64.0 lint openapi.yaml
 
 fmt: ## Format code
 	gofmt -w .

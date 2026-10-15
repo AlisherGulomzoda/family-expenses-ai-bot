@@ -1,0 +1,593 @@
+openapi: 3.1.0
+
+info:
+  title: Family Expenses API
+  version: 1.0.0
+  summary: REST API of the family head's web panel.
+  description: |
+    CRUD over the expenses of all family members, plus aggregates for the panel.
+
+    Conventions:
+    - Money (`amount`, `total`) is in rubles as a JSON number with at most 2 decimal
+      places (`350`, `349.9`). The backend stores kopecks, so there is no rounding drift.
+    - Dates are `YYYY-MM-DD`. Period filters `from`/`to` are inclusive.
+    - Category codes are stable English identifiers; Russian labels come from `GET /api/categories`.
+    - There is no authentication: the panel is meant for the family head (see README).
+  license:
+    name: MIT
+    identifier: MIT
+
+servers:
+  - url: /
+    description: Same origin (nginx proxies /api to the backend)
+
+# No authentication by design (task requirement): the panel is for the family head.
+security: []
+
+tags:
+  - name: expenses
+    description: Expenses of all family members.
+  - name: users
+    description: Family members known to the bot.
+  - name: categories
+    description: Fixed list of expense categories.
+  - name: health
+    description: Liveness and database readiness.
+
+paths:
+  /api/users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List family members
+      description: Family members appear here after they first write to the bot.
+      responses:
+        "200":
+          description: Family members ordered by name.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+              example:
+                - { id: 100000001, name: Алишер, username: alisher }
+                - { id: 100000003, name: Зарина, username: null }
+                - { id: 100000002, name: Мадина, username: madina_k }
+                - { id: 100000004, name: Тимур, username: timur }
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List expense categories
+      description: All categories in their fixed display order.
+      responses:
+        "200":
+          description: Categories.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+              example:
+                - { code: food, name: Еда }
+                - { code: transport, name: Транспорт }
+                - { code: housing, name: Жильё }
+                - { code: entertainment, name: Развлечения }
+                - { code: health, name: Здоровье }
+                - { code: shopping, name: Покупки }
+                - { code: other, name: Другое }
+
+  /api/expenses:
+    get:
+      operationId: listExpenses
+      tags: [expenses]
+      summary: List expenses
+      description: Expenses of all family members matching the filters, one page at a time.
+      parameters:
+        - $ref: "#/components/parameters/UserID"
+        - $ref: "#/components/parameters/From"
+        - $ref: "#/components/parameters/To"
+        - $ref: "#/components/parameters/Category"
+        - name: sort
+          in: query
+          description: Sort field. Ties are always broken by `id` in the same direction.
+          schema:
+            type: string
+            enum: [spent_at, amount, created_at]
+            default: spent_at
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: limit
+          in: query
+          description: Page size.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: A page of expenses and the total number matching the filters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseList"
+              example:
+                items:
+                  - id: 42
+                    user_id: 100000001
+                    user_name: Алишер
+                    amount: 350
+                    category: food
+                    spent_at: "2026-10-15"
+                    comment: кофе
+                    source: bot
+                    created_at: "2026-10-15T08:12:03Z"
+                    updated_at: "2026-10-15T08:12:03Z"
+                  - id: 41
+                    user_id: 100000002
+                    user_name: Мадина
+                    amount: 1200
+                    category: transport
+                    spent_at: "2026-10-14"
+                    comment: такси
+                    source: bot
+                    created_at: "2026-10-14T19:40:51Z"
+                    updated_at: "2026-10-14T19:40:51Z"
+                  - id: 40
+                    user_id: 100000001
+                    user_name: Алишер
+                    amount: 3480.5
+                    category: food
+                    spent_at: "2026-10-14"
+                    comment: продукты в «Пятёрочке»
+                    source: web
+                    created_at: "2026-10-14T17:05:12Z"
+                    updated_at: "2026-10-15T09:00:00Z"
+                total: 37
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    post:
+      operationId: createExpense
+      tags: [expenses]
+      summary: Create an expense
+      description: Expenses created through the API get `source = web`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseInput"
+            example:
+              user_id: 100000002
+              amount: 890
+              category: health
+              spent_at: "2026-10-16"
+              comment: аптека
+      responses:
+        "201":
+          description: The created expense.
+          headers:
+            Location:
+              description: URL of the created expense.
+              schema:
+                type: string
+                example: /api/expenses/43
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+              example:
+                id: 43
+                user_id: 100000002
+                user_name: Мадина
+                amount: 890
+                category: health
+                spent_at: "2026-10-16"
+                comment: аптека
+                source: web
+                created_at: "2026-10-16T10:00:00Z"
+                updated_at: "2026-10-16T10:00:00Z"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/expenses/summary:
+    get:
+      operationId: getExpensesSummary
+      tags: [expenses]
+      summary: Aggregate expenses
+      description: |
+        Totals over **all** expenses matching the filters (not just one page):
+        overall sum and count, and a breakdown by category.
+      parameters:
+        - $ref: "#/components/parameters/UserID"
+        - $ref: "#/components/parameters/From"
+        - $ref: "#/components/parameters/To"
+        - $ref: "#/components/parameters/Category"
+      responses:
+        "200":
+          description: Aggregates.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Summary"
+              example:
+                total: 48720
+                count: 37
+                by_category:
+                  - { category: food, total: 16400, count: 15 }
+                  - { category: housing, total: 12000, count: 2 }
+                  - { category: transport, total: 7300, count: 9 }
+                  - { category: shopping, total: 6200, count: 3 }
+                  - { category: entertainment, total: 3900, count: 4 }
+                  - { category: health, total: 2100, count: 3 }
+                  - { category: other, total: 820, count: 1 }
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/expenses/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+          format: int64
+          minimum: 1
+    get:
+      operationId: getExpense
+      tags: [expenses]
+      summary: Get an expense
+      responses:
+        "200":
+          description: The expense.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    put:
+      operationId: updateExpense
+      tags: [expenses]
+      summary: Replace an expense
+      description: |
+        Full replacement of the editable fields (the form always sends all of them).
+        `source` is not editable and keeps its original value.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseInput"
+            example:
+              user_id: 100000001
+              amount: 450
+              category: food
+              spent_at: "2026-10-15"
+              comment: кофе
+      responses:
+        "200":
+          description: The updated expense.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Expense"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    delete:
+      operationId: deleteExpense
+      tags: [expenses]
+      summary: Delete an expense
+      responses:
+        "204":
+          description: Deleted.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /healthz:
+    get:
+      operationId: healthz
+      tags: [health]
+      summary: Health check
+      description: Checks that the server is up and the database is reachable.
+      responses:
+        "200":
+          description: Healthy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+              example: { status: ok }
+        "503":
+          description: The database is unreachable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+              example: { status: unavailable }
+
+components:
+  parameters:
+    UserID:
+      name: user_id
+      in: query
+      description: Only expenses of this family member (Telegram ID).
+      schema:
+        type: integer
+        format: int64
+    From:
+      name: from
+      in: query
+      description: Period start, inclusive.
+      schema:
+        type: string
+        format: date
+      example: "2026-10-01"
+    To:
+      name: to
+      in: query
+      description: Period end, inclusive. Must not be before `from`.
+      schema:
+        type: string
+        format: date
+      example: "2026-10-31"
+    Category:
+      name: category
+      in: query
+      schema:
+        $ref: "#/components/schemas/CategoryCode"
+
+  schemas:
+    CategoryCode:
+      type: string
+      enum: [food, transport, housing, entertainment, health, shopping, other]
+      description: Fixed order; it is also the display order in the UI.
+
+    Source:
+      type: string
+      enum: [bot, web]
+      description: Where the expense was created (Telegram bot or web panel).
+
+    Money:
+      type: number
+      exclusiveMinimum: 0
+      maximum: 100000000
+      description: Rubles, at most 2 decimal places.
+      examples: [350, 349.9, 1250000.5]
+
+    User:
+      type: object
+      required: [id, name, username]
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Telegram user ID.
+        name:
+          type: string
+          description: First and last name from the Telegram profile.
+        username:
+          type: [string, "null"]
+          description: Telegram username without `@`.
+
+    Category:
+      type: object
+      required: [code, name]
+      properties:
+        code:
+          $ref: "#/components/schemas/CategoryCode"
+        name:
+          type: string
+          description: Russian label.
+
+    Expense:
+      type: object
+      required: [id, user_id, user_name, amount, category, spent_at, comment, source, created_at, updated_at]
+      properties:
+        id:
+          type: integer
+          format: int64
+        user_id:
+          type: integer
+          format: int64
+          description: Telegram ID of the family member who spent the money.
+        user_name:
+          type: string
+        amount:
+          $ref: "#/components/schemas/Money"
+        category:
+          $ref: "#/components/schemas/CategoryCode"
+        spent_at:
+          type: string
+          format: date
+        comment:
+          type: [string, "null"]
+          maxLength: 500
+        source:
+          $ref: "#/components/schemas/Source"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ExpenseInput:
+      type: object
+      additionalProperties: false
+      required: [user_id, amount, category, spent_at]
+      properties:
+        user_id:
+          type: integer
+          format: int64
+          description: Must be a known family member (see `GET /api/users`).
+        amount:
+          $ref: "#/components/schemas/Money"
+        category:
+          $ref: "#/components/schemas/CategoryCode"
+        spent_at:
+          type: string
+          format: date
+          description: Not later than tomorrow and not earlier than 2000-01-01.
+        comment:
+          type: [string, "null"]
+          maxLength: 500
+          description: Empty or whitespace-only string is stored as null.
+
+    ExpenseList:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Expense"
+        total:
+          type: integer
+          minimum: 0
+          description: Number of expenses matching the filters (all pages).
+
+    CategoryTotal:
+      type: object
+      required: [category, total, count]
+      properties:
+        category:
+          $ref: "#/components/schemas/CategoryCode"
+        total:
+          type: number
+          description: Rubles.
+        count:
+          type: integer
+          minimum: 1
+
+    Summary:
+      type: object
+      required: [total, count, by_category]
+      properties:
+        total:
+          type: number
+          minimum: 0
+          description: Sum in rubles; 0 when nothing matches.
+        count:
+          type: integer
+          minimum: 0
+        by_category:
+          type: array
+          description: Only categories with at least one expense, sorted by total descending.
+          items:
+            $ref: "#/components/schemas/CategoryTotal"
+
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok, unavailable]
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum: [bad_request, not_found, validation_error, internal]
+            message:
+              type: string
+              description: Human-readable message in Russian, safe to show in the UI.
+            fields:
+              type: object
+              description: Per-field messages (request body fields or query parameters).
+              additionalProperties:
+                type: string
+
+  responses:
+    BadRequest:
+      description: |
+        Malformed request: invalid JSON, wrong query parameter or path value
+        (bad date, unknown category, `from` after `to`, non-numeric id).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error:
+              code: bad_request
+              message: Некорректные параметры запроса
+              fields:
+                from: ожидается дата в формате ГГГГ-ММ-ДД
+    NotFound:
+      description: The expense does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error:
+              code: not_found
+              message: Трата не найдена
+    ValidationError:
+      description: The request body is well-formed but its values are invalid.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error:
+              code: validation_error
+              message: Проверьте заполнение полей
+              fields:
+                amount: Укажите сумму больше нуля
+                category: Выберите категорию
+    InternalError:
+      description: Unexpected server error. Details are logged, not returned.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error:
+              code: internal
+              message: Что-то пошло не так. Попробуйте ещё раз

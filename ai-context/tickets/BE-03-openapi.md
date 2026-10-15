@@ -33,3 +33,17 @@
 
 ## Коммит
 `docs(api): add OpenAPI contract for expenses REST API`
+
+## Итог реализации (2026-10-16) — ✅ готово
+
+Проверено: `redocly lint` (2.64.0, ruleset `recommended`) — valid, 0 предупреждений; `openapi-typescript` 7.13 генерирует типы (785 строк) без ошибок, nullable и enum переносятся корректно. Команда — `make api-lint`.
+
+Уточнения контракта (важны для BE-06 и FE):
+- **400 vs 422**: 400 `bad_request` — невалидный JSON, query или path (плохая дата, неизвестная категория, `from > to`, нечисловой id), с `fields`; 422 `validation_error` — корректный JSON с недопустимыми значениями (сумма, неизвестный `user_id`, дата вне диапазона).
+- `Money`: `> 0`, `≤ 100 000 000` ₽, ≤ 2 знаков — тот же лимит в домене (BE-04).
+- `ExpenseInput`: `additionalProperties: false`, `comment` пустой/пробельный → `null`, `spent_at` не позже завтра и не раньше 2000-01-01.
+- `POST` возвращает `201` + заголовок `Location`.
+- `by_category` в summary — только категории с тратами, отсортированы по сумме по убыванию.
+- `/healthz` → `200 {status: ok}` / `503 {status: unavailable}`.
+- `message` в ошибках — по-русски, безопасно показывать в UI.
+- `security: []` — явное «без авторизации»; правило `operation-4xx-response` отключено в `api/redocly.yaml` (у users/categories/healthz нет входных данных → нет честного 4xx).

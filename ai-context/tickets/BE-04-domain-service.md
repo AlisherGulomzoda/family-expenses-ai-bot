@@ -16,7 +16,7 @@
   - `Rubles() string` / `MarshalJSON` — рубли для API (`350.5`), `String()` — «350,50 ₽» для бота.
 - `Filter` (UserID *int64, From/To *date, Category *Category, Query string, Sort, Order, Limit, Offset), `SortField` с whitelist (`spent_at`, `amount`, `created_at`).
 - `Summary` (Total Money, Count int, ByCategory []CategoryTotal).
-- `CreateInput`, `UpdateInput` (поля-указатели для частичного обновления), валидация: сумма > 0, категория валидна, дата не в будущем дальше чем на 1 день и не раньше 2000-01-01, комментарий ≤ 500 символов.
+- `CreateInput`, `UpdateInput` (поля-указатели для частичного обновления), валидация: сумма > 0 и ≤ 100 000 000 ₽ (как `Money.maximum` в `openapi.yaml`), категория валидна, пустой/пробельный комментарий → `nil`, дата не в будущем дальше чем на 1 день и не раньше 2000-01-01, комментарий ≤ 500 символов.
 - Ошибки: `ErrNotFound`, `ValidationError{Fields map[string]string}`.
 - `Repository` — интерфейс (реализация в BE-05).
 - `Service` — методы для **админа (веб-панель)**: `List`, `Summary`, `Get`, `Create`, `Update`, `Delete` — по всем пользователям.
