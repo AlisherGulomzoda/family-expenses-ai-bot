@@ -26,9 +26,13 @@ Dev-сервер в контейнере: `-p 127.0.0.1:5173:5173`, `-e VITE_API
 
 **Без бэкенда** — API из MSW-моков (≈40 реалистичных трат четырёх членов семьи, та же семантика фильтров, сортировки и ошибок, что у настоящего API): `VITE_API_MOCKS=true npm run dev`. В production-сборку моки не попадают.
 
+## Production
+
+`Dockerfile`: сборка на `node:24-alpine` → статика на `nginx:1.30-alpine`. nginx (`nginx/default.conf`) отдаёт SPA (любой путь → `index.html`, без кэша; `/assets` — кэш на год), проксирует `/api/` на сервис `api` с `X-Request-ID`, добавляет заголовки безопасности. В compose это сервис `web` на `http://localhost:8080` (`WEB_PORT`; по умолчанию только с этой машины — `WEB_BIND`).
+
 ## Структура
 
-- `src/components/ui/` — компоненты shadcn/ui, сгенерированы CLI (`npx shadcn@latest add …`), не редактируются вручную, исключены из линтера и Prettier;
+- `src/components/ui/` — компоненты shadcn/ui, сгенерированы CLI (`npx shadcn@latest add …`), исключены из линтера и Prettier; точечные правки помечены комментариями (`progress.tsx` — a11y, `dialog.tsx` — «Закрыть»);
 - `src/app/` — провайдеры приложения (тема, QueryClient, тултипы, тосты);
 - `src/api/` — типизированный клиент (`openapi-fetch`), `ApiError`, хуки TanStack Query (`useExpenses`, `useExpensesInfinite`, `useSummary`, `useUsers`, мутации с инвалидацией);
 - `src/mocks/` — MSW: данные (`db.ts`), обработчики (`handlers.ts`), браузер (`browser.ts`) и тесты (`node.ts`);
