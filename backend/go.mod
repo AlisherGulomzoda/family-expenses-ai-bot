@@ -4,6 +4,7 @@ go 1.27
 
 require (
 	github.com/caarlos0/env/v11 v11.4.1
+	github.com/go-telegram/bot v1.27.0
 	github.com/jackc/pgx/v5 v5.11.0
 	github.com/pb33f/jsonschema/v6 v6.0.3
 	github.com/pb33f/libopenapi v0.41.3
