@@ -126,3 +126,12 @@ export function useExpensesView(): [ExpensesView, (patch: ViewPatch) => void] {
   }, [])
   return [view, update]
 }
+
+/** How many filters differ from the defaults: member, period, category («Фильтры (N)»). */
+export function countFilters(
+  v: { userId?: number; category?: CategoryCode } & Period,
+  def: Period = defaultPeriod(),
+): number {
+  const period = v.from !== def.from || v.to !== def.to
+  return Number(v.userId !== undefined) + Number(v.category !== undefined) + Number(period)
+}

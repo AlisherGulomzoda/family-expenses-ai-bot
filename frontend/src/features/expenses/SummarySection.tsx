@@ -7,7 +7,9 @@ import { cn } from '@/lib/utils'
 import { CATEGORIES, type CategoryCode } from '@/shared/categories'
 import { formatRub } from '@/shared/money'
 import { plural } from '@/shared/plural'
+import { useIsDesktop } from '@/shared/useMediaQuery'
 
+import { MobileSummary } from './MobileSummary'
 import { average, share } from './stats'
 
 // Progress paints its only child (the indicator); the class picks its color.
@@ -29,9 +31,12 @@ const DASH = '—'
  */
 export function SummarySection({ filters }: { filters: ExpenseFilters }) {
   const summary = useSummary(filters)
+  const isDesktop = useIsDesktop()
   const data = summary.data
   const failed = summary.isError && !data
   const loading = summary.isPending
+
+  if (!isDesktop) return <MobileSummary data={data} loading={loading} failed={failed} />
 
   return (
     <section aria-label="Сводка" aria-busy={loading} className="flex flex-col gap-3">
