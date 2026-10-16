@@ -5,7 +5,7 @@ IMAGE := family-expenses-backend
 -include ../.env
 export
 
-.PHONY: build test test-docker test-integration test-live lint api-lint sqlc fmt run-api run-bot docker-build
+.PHONY: build test test-docker test-integration test-live eval lint api-lint sqlc fmt run-api run-bot docker-build
 
 build: ## Build all binaries into ./bin
 	go build -o bin/ ./cmd/...
@@ -25,6 +25,10 @@ test-integration: ## Run unit + PostgreSQL integration tests (testcontainers, ne
 test-live: ## Smoke-test the real LLM from ../.env: one tool call + the task examples (~1 cent)
 	docker run --rm --env-file ../.env -v "$(CURDIR):/src" -v gomodcache:/go/pkg/mod \
 		-w /src golang:1.27 go test -tags live -count=1 -v -run Live ./internal/llm/ ./internal/agent/
+
+eval: ## Run the agent evaluation suite against the LLM from ../.env (ARGS="-tags read -runs 3")
+	docker run --rm --env-file ../.env -v "$(CURDIR):/src" -v gomodcache:/go/pkg/mod \
+		-w /src golang:1.27 go run ./cmd/eval $(ARGS)
 
 lint: ## Run golangci-lint (via Docker, no local install needed)
 	docker run --rm -v "$(CURDIR):/src" -w /src golangci/golangci-lint:$(GOLANGCI_LINT_VERSION) golangci-lint run --build-tags integration,live ./...

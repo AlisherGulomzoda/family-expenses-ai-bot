@@ -83,7 +83,8 @@ func listExpenses() Tool {
 		Name: "list_expenses",
 		Description: `Find the user's expenses, newest first. Use it to show expenses ("покажи траты за неделю") ` +
 			`and to find the expense to change or delete: by comment text ("удали такси" → query "такси") ` +
-			`or the last recorded one ("последнее было не 350, а 450" → sort "created_at", limit 1).`,
+			`or the last recorded one ("последнее было не 350, а 450" → sort "created_at", limit 1). ` +
+			`It only reads: to change or delete the expense you found, call update_expense or delete_expense with its id.`,
 		Schema: json.RawMessage(`{
   "type": "object",
   "properties": {
@@ -138,7 +139,10 @@ func listExpenses() Tool {
 			return struct {
 				Items []expenseView `json:"items"`
 				Total int           `json:"total"`
-			}{items, page.Total}, nil
+				// The eval caught the model reporting "удалил" after only listing:
+				// the reminder sits right next to the ids it needs.
+				Note string `json:"note"`
+			}{items, page.Total, "Это только поиск, ничего не изменено. Чтобы изменить или удалить трату, вызови update_expense или delete_expense с её id."}, nil
 		},
 	}
 }
