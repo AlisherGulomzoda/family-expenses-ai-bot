@@ -22,9 +22,9 @@ test-integration: ## Run unit + PostgreSQL integration tests (testcontainers, ne
 		-e TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal \
 		-w /src golang:1.27 go test -tags integration -race -count=1 ./...
 
-test-live: ## Call the real LLM from ../.env (costs a fraction of a cent)
+test-live: ## Smoke-test the real LLM from ../.env: one tool call + the task examples (~1 cent)
 	docker run --rm --env-file ../.env -v "$(CURDIR):/src" -v gomodcache:/go/pkg/mod \
-		-w /src golang:1.27 go test -tags live -count=1 -v -run Live ./internal/llm/
+		-w /src golang:1.27 go test -tags live -count=1 -v -run Live ./internal/llm/ ./internal/agent/
 
 lint: ## Run golangci-lint (via Docker, no local install needed)
 	docker run --rm -v "$(CURDIR):/src" -w /src golangci/golangci-lint:$(GOLANGCI_LINT_VERSION) golangci-lint run --build-tags integration,live ./...
