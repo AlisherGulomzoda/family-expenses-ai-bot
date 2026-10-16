@@ -142,6 +142,9 @@ func (u UserScope) UserID() int64 { return u.userID }
 // Today returns the current date in the service time zone (midnight UTC).
 func (u UserScope) Today() time.Time { return u.svc.Today() }
 
+// Location returns the time zone that defines "today".
+func (u UserScope) Location() *time.Location { return u.svc.loc }
+
 // List returns the user's expenses matching f. f.UserID is ignored.
 func (u UserScope) List(ctx context.Context, f Filter) (Page, error) {
 	f.UserID = &u.userID
