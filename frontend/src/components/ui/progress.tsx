@@ -10,6 +10,9 @@ function Progress({
   return (
     <ProgressPrimitive.Root
       data-slot="progress"
+      // Local fix: the generated component did not forward `value`, so the
+      // bar had no aria-valuenow and was announced as indeterminate.
+      value={value}
       className={cn(
         "relative flex h-1 w-full items-center overflow-x-hidden rounded-full bg-muted",
         className
