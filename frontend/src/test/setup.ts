@@ -5,6 +5,8 @@ import { afterAll, afterEach, beforeAll } from 'vitest'
 
 import { server } from '@/mocks/node'
 
+import { installMatchMedia, resetViewport } from './viewport'
+
 // Network calls in tests go to MSW; an unmocked request fails the test.
 beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
 afterAll(() => server.close())
@@ -16,24 +18,12 @@ afterEach(() => {
   server.resetHandlers()
   localStorage.clear()
   document.documentElement.className = ''
+  resetViewport()
 })
 
-// jsdom has no matchMedia (used by next-themes for the system theme):
-// report "light" and never fire change events.
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: (query: string): MediaQueryList =>
-    ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      addListener: () => {},
-      removeListener: () => {},
-      dispatchEvent: () => false,
-    }) as MediaQueryList,
-})
+// jsdom has no matchMedia: width queries follow the test viewport (desktop by
+// default, see setViewport); prefers-color-scheme reports "light".
+installMatchMedia()
 
 // Radix primitives observe their size.
 class ResizeObserverStub {

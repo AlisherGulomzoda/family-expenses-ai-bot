@@ -32,6 +32,7 @@ import { formatDayLabel, fromISODate, toISODate } from '@/shared/dates'
 import { formatRub } from '@/shared/money'
 import { capitalize } from '@/shared/text'
 import { initials } from '@/shared/people'
+import { useIsDesktop } from '@/shared/useMediaQuery'
 
 import { DeleteExpenseDialog } from './DeleteExpenseDialog'
 import {
@@ -45,6 +46,8 @@ import {
   type FormValues,
 } from './expenseForm'
 
+const AMOUNT_ID = 'expense-amount'
+
 /** What the dialog edits: a new expense or an existing one. */
 export type Editor = { mode: 'create' } | { mode: 'edit'; expense: Expense }
 
@@ -55,12 +58,28 @@ type Props = {
   filterUserId?: number
 }
 
-/** Create and edit dialog (design: ExpenseDialog, DialogNew, DialogErrors, DialogEdit). */
+/**
+ * Create and edit dialog (design: ExpenseDialog, DialogNew, DialogErrors, DialogEdit).
+ * On phones it fills the screen, the amount comes first and gets the focus,
+ * and the buttons stay at the bottom (design: MobileCreate).
+ */
 export function ExpenseFormDialog({ editor, onClose, filterUserId }: Props) {
+  const isDesktop = useIsDesktop()
   return (
     <Dialog open={editor !== null} onOpenChange={(open) => !open && onClose()}>
       {editor && (
-        <DialogContent className="rounded-xl sm:max-w-[520px]">
+        <DialogContent
+          className={cn(
+            isDesktop
+              ? 'rounded-xl sm:max-w-[520px]'
+              : 'top-0 left-0 flex h-dvh max-w-none translate-x-0 translate-y-0 flex-col overflow-y-auto rounded-none p-0',
+          )}
+          onOpenAutoFocus={(e) => {
+            if (isDesktop) return
+            e.preventDefault()
+            document.getElementById(AMOUNT_ID)?.focus()
+          }}
+        >
           {/* A fresh form per opened expense: no state leaks between dialogs. */}
           <ExpenseForm
             key={editor.mode === 'edit' ? `edit-${editor.expense.id}` : 'create'}
@@ -129,7 +148,7 @@ function ExpenseForm({ editor, filterUserId, onDone }: FormProps) {
   }
 
   return (
-    <form onSubmit={form.handleSubmit(save)} noValidate className="flex flex-col gap-5">
+    <form onSubmit={form.handleSubmit(save)} noValidate className="flex flex-col gap-5 max-md:min-h-full max-md:p-4">
       <DialogHeader>
         <DialogTitle className="text-xl">{editing ? 'Редактирование траты' : 'Новая трата'}</DialogTitle>
         <DialogDescription>
@@ -172,11 +191,11 @@ function ExpenseForm({ editor, filterUserId, onDone }: FormProps) {
           control={form.control}
           name="amount"
           render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="expense-amount">Сумма, ₽</FieldLabel>
+            <Field data-invalid={fieldState.invalid} className="max-md:order-first">
+              <FieldLabel htmlFor={AMOUNT_ID}>Сумма, ₽</FieldLabel>
               <InputGroup className="h-14">
                 <InputGroupInput
-                  id="expense-amount"
+                  id={AMOUNT_ID}
                   inputMode="decimal"
                   autoComplete="off"
                   placeholder="0"
@@ -272,7 +291,7 @@ function ExpenseForm({ editor, filterUserId, onDone }: FormProps) {
         </div>
       )}
 
-      <DialogFooter className="items-center gap-2 sm:justify-between">
+      <DialogFooter className="items-center gap-2 max-md:sticky max-md:bottom-0 max-md:-mx-4 max-md:mt-auto max-md:-mb-4 max-md:border-t max-md:bg-popover max-md:p-4 sm:justify-between">
         {editing ? (
           <Button
             type="button"

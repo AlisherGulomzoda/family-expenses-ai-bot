@@ -1,15 +1,4 @@
-import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  CloudOff,
-  Pencil,
-  Plus,
-  Receipt,
-  RefreshCw,
-  RotateCcw,
-  Trash2,
-} from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Pencil, Trash2 } from 'lucide-react'
 import { useEffect, type ReactNode } from 'react'
 
 import type { Expense } from '@/api/client'
@@ -17,7 +6,6 @@ import { PAGE_SIZE, useExpenses } from '@/api/hooks'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Empty, EmptyContent, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
@@ -26,6 +14,7 @@ import { formatDate } from '@/shared/dates'
 import { formatRub } from '@/shared/money'
 import { initials } from '@/shared/people'
 
+import { LoadFailed, NoExpenses } from './ListStates'
 import { TablePagination } from './TablePagination'
 import { TruncatedText } from './TruncatedText'
 import type { ExpensesView, SortKey, ViewPatch } from './urlState'
@@ -120,47 +109,10 @@ export function ExpensesTable({ view, onChange, onResetFilters, onAdd, onEdit, o
   }, [lastPage, list.isPlaceholderData, view.page, onChange])
 
   if (list.isError && !list.data) {
-    return (
-      <Empty className="rounded-lg border" role="alert">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <CloudOff className="text-destructive" />
-          </EmptyMedia>
-          <EmptyTitle>Не удалось загрузить траты</EmptyTitle>
-        </EmptyHeader>
-        <EmptyContent>
-          <Button variant="outline" onClick={() => void list.refetch()}>
-            <RefreshCw />
-            Повторить
-          </Button>
-        </EmptyContent>
-      </Empty>
-    )
+    return <LoadFailed onRetry={() => void list.refetch()} />
   }
-
   if (list.data && list.data.total === 0) {
-    return (
-      <Empty className="rounded-lg border">
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <Receipt />
-          </EmptyMedia>
-          <EmptyTitle>За выбранный период трат нет</EmptyTitle>
-        </EmptyHeader>
-        <EmptyContent className="flex-row justify-center">
-          {onResetFilters && (
-            <Button variant="outline" onClick={onResetFilters}>
-              <RotateCcw />
-              Сбросить фильтры
-            </Button>
-          )}
-          <Button onClick={onAdd}>
-            <Plus />
-            Добавить трату
-          </Button>
-        </EmptyContent>
-      </Empty>
-    )
+    return <NoExpenses onResetFilters={onResetFilters} onAdd={onAdd} />
   }
 
   const loading = list.isPending

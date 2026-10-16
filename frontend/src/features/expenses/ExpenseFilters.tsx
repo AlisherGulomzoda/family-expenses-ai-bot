@@ -1,26 +1,17 @@
 import { CalendarDays, RotateCcw } from 'lucide-react'
 import { useState } from 'react'
-import { ru } from 'react-day-picker/locale'
 
 import { useUsers } from '@/api/hooks'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { CATEGORIES, CATEGORY_CODES, isCategoryCode } from '@/shared/categories'
 import { initials } from '@/shared/people'
-import {
-  formatPeriod,
-  fromISODate,
-  matchPreset,
-  PERIOD_PRESETS,
-  presetPeriod,
-  toISODate,
-  type PeriodPreset,
-} from '@/shared/dates'
+import { formatPeriod, matchPreset, PERIOD_PRESETS, presetPeriod, type PeriodPreset } from '@/shared/dates'
 
+import { PeriodCalendar } from './PeriodCalendar'
 import { defaultPeriod, hasDefaultFilters, type ExpensesView, type ViewPatch } from './urlState'
 
 const ALL = 'all'
@@ -73,35 +64,10 @@ function MemberSelect({ view, onChange }: Props) {
   )
 }
 
-/**
- * Two clicks pick a period: the first starts a new range, the second ends it
- * (the same day twice is a one-day period). react-day-picker would instead
- * stretch the current range, so the clicks are interpreted here.
- */
 function PeriodPicker({ view, onChange }: Props) {
   const [open, setOpen] = useState(false)
-  const [start, setStart] = useState<Date>()
-  const current = { from: fromISODate(view.from), to: fromISODate(view.to) }
-
-  const pick = (day: Date) => {
-    if (!start) {
-      setStart(day)
-      return
-    }
-    const [from, to] = start <= day ? [start, day] : [day, start]
-    onChange({ from: toISODate(from), to: toISODate(to) })
-    setStart(undefined)
-    setOpen(false)
-  }
-
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next)
-        setStart(undefined)
-      }}
-    >
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="outline" aria-label={`Период: ${formatPeriod(view)}`}>
           <CalendarDays />
@@ -109,14 +75,13 @@ function PeriodPicker({ view, onChange }: Props) {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="range"
+        <PeriodCalendar
+          period={view}
           numberOfMonths={2}
-          locale={ru}
-          defaultMonth={current.from}
-          // `selected` only highlights; the clicks themselves are handled by pick().
-          selected={start ? { from: start, to: start } : current}
-          onDayClick={(day, modifiers) => !modifiers.disabled && pick(day)}
+          onPick={(p) => {
+            onChange(p)
+            setOpen(false)
+          }}
         />
       </PopoverContent>
     </Popover>
