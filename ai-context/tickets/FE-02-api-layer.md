@@ -26,3 +26,23 @@
 
 ## Коммит
 `feat(frontend): add typed API client, query hooks, MSW mocks and shared formatters`
+
+## Итог реализации (2026-10-16) — ✅ готово
+
+Проверено (в `node:lts-alpine`): `format:check` ✓, `typecheck` ✓, `lint` — 0, `test` — **50/50** (деньги 24, даты 12, категории 3, хуки 9 поверх MSW, App 2), `build` ✓; MSW **не попадает** в production-бандл (ветка моков вырезается, размер бандла не изменился).
+
+Что сделано:
+- `npm run gen:api` → `src/api/schema.d.ts` (785 строк, коммитится); `src/api/client.ts` — `openapi-fetch`, `ApiError {status, code, message, fields}` (+ `cause` при сетевом сбое), `unwrap`.
+- `src/api/hooks.ts` — `queryKeys` (всё под `['expenses']`), `useUsers`, `useExpenses` (`keepPreviousData`, 10 на страницу), `useExpensesInfinite` («Показать ещё»), `useSummary`, `useCreate/Update/DeleteExpense` (инвалидируют списки и сводку).
+- `src/mocks/` — MSW 3: детерминированные ~40 трат 4 членов семьи за 45 дней относительно «сегодня»; обработчики повторяют семантику API (включительные периоды, сортировка с `id`, пагинация, сводка по всему фильтру, 400/404/422 с русскими текстами); `VITE_API_MOCKS=true` — моки в браузере; в тестах `server.listen({ onUnhandledFrame: 'error' })` — любой незамоканный запрос валит тест.
+- `src/shared/money.ts` — `formatRub` («24 350 ₽», «1 250 000,50 ₽», U+202F → U+00A0), `parseRubInput` (запятая/точка/пробелы, ≤ 2 знаков, в копейках, без float); `dates.ts` — форматы дизайна, «Сегодня/Вчера, …», быстрые периоды (неделя Пн–Вс), `formatPeriod` («1–31 окт 2026»); `categories.ts` — `CATEGORIES` из дизайна, `satisfies Record<CategoryCode,…>` — переименование категории в API ломает сборку.
+
+Найдено и исправлено по ходу:
+- **`openapi-fetch` запоминает `fetch` при создании клиента** → MSW (и любые обёртки, поставленные позже) обходились, запросы шли в сеть (`ECONNREFUSED`). Клиенту передан `fetch: (r) => globalThis.fetch(r)`.
+- `unwrap` скрывал причину сетевой ошибки — теперь она в `ApiError.cause`.
+- `date-fns` сокращает месяцы словарно («сент.», «нояб.»), дизайн — «сен», «ноя» → своя таблица сокращений.
+
+Отличия от плана:
+- `openapi-typescript` 7.13 объявляет peer `typescript ^5`, в проекте TS 6 → `overrides` в `package.json` только для него (генерация проверена: те же 785 строк, что на TS 5 в BE-03).
+- MSW 3: опция `onUnhandledRequest` переименована в `onUnhandledFrame`.
+- `useCategories` не нужен: категории фиксированы и проверяются типами; эндпоинт `/api/categories` замокан для полноты.
