@@ -22,7 +22,7 @@ React 19 + TypeScript (strict) + Vite, Tailwind CSS v4, shadcn/ui (Radix), TanSt
 docker run --rm -v "$PWD:/app" -v npmcache:/root/.npm -w /app node:lts-alpine sh -c "npm ci && npm test"
 ```
 
-Dev-сервер в контейнере: `-p 127.0.0.1:5173:5173`, `-e VITE_API_PROXY_TARGET=http://host.docker.internal:8081`, команда `npx vite --host 0.0.0.0`.
+Dev-сервер в контейнере: `-p 127.0.0.1:5173:5173`, `-e VITE_API_PROXY_TARGET=http://host.docker.internal:8081`, команда `npx vite --host 0.0.0.0`. На Windows-хосте изменения файлов не доходят до контейнера (bind mount без событий ФС) — после правок `docker restart <контейнер>`, иначе Vite отдаёт устаревшие модули.
 
 **Без бэкенда** — API из MSW-моков (≈40 реалистичных трат четырёх членов семьи, та же семантика фильтров, сортировки и ошибок, что у настоящего API): `VITE_API_MOCKS=true npm run dev`. В production-сборку моки не попадают.
 

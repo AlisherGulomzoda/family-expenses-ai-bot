@@ -15,6 +15,16 @@ export default defineConfig({
       '@': path.resolve(import.meta.dirname, './src'),
     },
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          // React changes far less often than the app: its own chunk stays cached between releases.
+          groups: [{ name: 'react', test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/ }],
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       '/api': { target: apiTarget, changeOrigin: true },

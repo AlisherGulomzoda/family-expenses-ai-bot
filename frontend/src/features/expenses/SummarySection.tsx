@@ -48,11 +48,11 @@ export function SummarySection({ filters }: { filters: ExpenseFilters }) {
             : 'Считаем сводку…'}
       </p>
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-[minmax(380px,5fr)_7fr] lg:gap-6">
-        <div className="grid gap-4 md:col-span-3 md:grid-cols-3 lg:col-span-1 lg:grid-cols-2">
+        <div className="grid gap-4 md:col-span-3 md:grid-cols-[3fr_2fr_2fr] lg:col-span-1 lg:grid-cols-2">
           <StatCard
             label="Итого"
             className="md:col-span-1 lg:col-span-2"
-            valueClassName="text-4xl md:text-[40px]"
+            valueClassName="text-4xl md:text-[min(40px,11cqi)]"
             value={loading ? undefined : data ? formatRub(data.total) : DASH}
           />
           <StatCard label="Трат" value={loading ? undefined : data ? String(data.count) : DASH} />
@@ -68,7 +68,7 @@ function StatCard({
   label,
   value,
   className,
-  valueClassName = 'text-[28px]',
+  valueClassName = 'text-[min(28px,13cqi)]',
 }: {
   label: string
   value?: string
@@ -76,7 +76,8 @@ function StatCard({
   valueClassName?: string
 }) {
   return (
-    <Card className={className}>
+    // The value scales with the card width (cqi): three cards in a row fit on a 768px tablet.
+    <Card className={cn('@container', className)}>
       <CardHeader>
         <CardDescription>{label}</CardDescription>
         {value === undefined ? (

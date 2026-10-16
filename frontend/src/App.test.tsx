@@ -1,21 +1,8 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
-import { App } from '@/App'
-import { Providers } from '@/app/Providers'
-import { createQueryClient } from '@/app/queryClient'
 import { resetMockApi, TEST_NOW } from '@/mocks/node'
-
-function renderApp(search = '') {
-  window.history.replaceState(null, '', `/${search}`)
-  const client = createQueryClient()
-  client.setDefaultOptions({ queries: { retry: false } })
-  return render(
-    <Providers queryClient={client}>
-      <App />
-    </Providers>,
-  )
-}
+import { renderApp } from '@/test/renderApp'
 
 const params = () => Object.fromEntries(new URLSearchParams(window.location.search))
 

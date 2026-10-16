@@ -4,7 +4,7 @@ _Обновлено: 2026-10-16_
 
 ## Текущий этап
 
-**Этап 3 — Реализация.** Готово: **BE-01…BE-10, BE-12** ✅ (бэкенд, кроме eval), **FE-01…FE-09** ✅ (панель целиком + Docker; вся система: `docker compose up -d --build` → http://localhost:8080). **BE-11** ✅ (eval: DeepSeek 87% → 100%, qwen2.5:3b 56%). Осталось: **FE-10** (полировка, скриншоты, бандл) → **CM-01** (README, письмо) → BE-13 (MCP, опционально).
+**Этап 3 — Реализация.** Готово: **BE-01…BE-12** ✅ (бэкенд + eval), **FE-01…FE-10** ✅ (панель целиком + Docker + полировка; вся система: `docker compose up -d --build` → http://localhost:8080). Eval: DeepSeek 87% → 100%, qwen2.5:3b 56%. Осталось: **CM-01** (README, письмо) → BE-13 (MCP, опционально).
 
 DeepSeek: баланс пополнен, `make test-live` ✅, примеры ТЗ через агента ✅ (7/7). Бот работает в compose с DeepSeek (токен и whitelist в `.env`).
 Ollama: образ `ollama/ollama:0.40.5` и модель `qwen2.5:3b` скачаны пользователем (том `ollama-data`); сервер остановлен. Для eval понадобится `qwen2.5:7b` — **качает пользователь** (правило в `03-workflow.md`).
@@ -13,12 +13,12 @@ Ollama: образ `ollama/ollama:0.40.5` и модель `qwen2.5:3b` скач�
 |---|---|
 | Бэклоги B1–B3 (`backlog/`) | ✅ одобрены; дизайн получен, копия — `design/design-spec.md` |
 | Тикеты BE-01…13, FE-01…10, CM-01 (`tickets/README.md`) | ✅ одобрены вместе с порядком реализации |
-| Реализация | ▶️ бэкенд ✅ (PR #1–#11), FE-01…FE-09 ✅ (PR #12–#20), BE-11 ✅ — ждём коммит/пуш (C23) |
+| Реализация | ▶️ бэкенд ✅ (PR #1–#11), BE-11 ✅ (PR #21), FE-01…FE-09 ✅ (PR #12–#20), FE-10 ✅ — ждём коммит/пуш (C24) |
 
 ## Следующий шаг
 
-1. Пользователь коммитит и пушит BE-11 (C23), сливает в `main`.
-2. По сигналу «продолжай» — FE-10 (полировка, a11y, ленивая загрузка, скриншоты).
+1. Пользователь коммитит и пушит FE-10 (C24), сливает в `main`.
+2. По сигналу «продолжай» — CM-01: README на русском (скриншоты из `docs/screenshots/`, eval-таблица, `WEB_BIND`/без авторизации) и `cover-letter.md` из `future-improvements.md`.
 
 ## Секреты
 
@@ -33,7 +33,7 @@ Ollama: образ `ollama/ollama:0.40.5` и модель `qwen2.5:3b` скач�
 
 ## Фронтенд без локального Node.js
 
-Всё через `node:lts-alpine` (Node 24): `docker run --rm -e CI=1 -v "<путь>/frontend:/app" -v npmcache:/root/.npm -w /app node:lts-alpine sh -c "npm run -s typecheck && npm run -s lint && npm run -s test && npm run -s build"`. `node_modules` лежит в `frontend/` (bind mount, собран под Linux). Встроенного браузера в сессии может не быть — визуальную сверку делает пользователь.
+Всё через `node:lts-alpine` (Node 24): `docker run --rm -e CI=1 -v "<путь>/frontend:/app" -v npmcache:/root/.npm -w /app node:lts-alpine sh -c "npm run -s typecheck && npm run -s lint && npm run -s test && npm run -s build"`. `node_modules` лежит в `frontend/` (bind mount, собран под Linux). Скриншоты: headless Edge через DevTools Protocol (PowerShell-скрипт, Edge есть в Windows) против dev-сервера с моками `fe-dev` (`VITE_API_MOCKS=true`, порт 5173); после правок кода — `docker restart fe-dev` (bind mount на Windows не передаёт события ФС).
 
 ## Как проверять бэкенд на Windows
 
