@@ -15,7 +15,7 @@ func setEnv(t *testing.T, vars map[string]string) {
 		"LOG_LEVEL", "APP_TIMEZONE", "DATABASE_URL", "HTTP_ADDR",
 		"TELEGRAM_BOT_TOKEN", "ALLOWED_TELEGRAM_IDS",
 		"LLM_BASE_URL", "LLM_API_KEY", "LLM_MODEL", "LLM_TIMEOUT", "LLM_TEMPERATURE",
-		"AGENT_HISTORY_LIMIT", "AGENT_MAX_STEPS",
+		"AGENT_HISTORY_LIMIT", "AGENT_MAX_STEPS", "MCP_TELEGRAM_ID",
 	}
 	for _, k := range known {
 		t.Setenv(k, vars[k])
@@ -126,6 +126,18 @@ func TestLoadErrors(t *testing.T) {
 				"AGENT_MAX_STEPS":    "0",
 			},
 			wantErr: []string{"AGENT_MAX_STEPS"},
+		},
+		{
+			name:    "mcp without a user",
+			load:    func() error { _, err := Load[MCP](); return err },
+			vars:    map[string]string{"DATABASE_URL": "postgres://localhost/db"},
+			wantErr: []string{"MCP_TELEGRAM_ID"},
+		},
+		{
+			name:    "mcp with a negative user id",
+			load:    func() error { _, err := Load[MCP](); return err },
+			vars:    map[string]string{"DATABASE_URL": "postgres://localhost/db", "MCP_TELEGRAM_ID": "-1"},
+			wantErr: []string{"MCP_TELEGRAM_ID"},
 		},
 	}
 

@@ -62,13 +62,13 @@ docker compose --profile local-llm up -d --build   # бот дождётся, п
               React SPA             REST
 ```
 
-- **Один Go-модуль и один Docker-образ** с командами `api`, `bot`, `migrate`, `eval`. Общий код — домен, сервис, репозитории.
+- **Один Go-модуль и один Docker-образ** с командами `api`, `bot`, `migrate`, `eval`, `mcp`. Общий код — домен, сервис, репозитории.
 - **`migrate`** — одноразовый сервис: `api` и `bot` стартуют после успешного применения миграций.
 - **nginx** раздаёт SPA и проксирует `/api` — один порт, без CORS.
 
 ```
 backend/
-├── cmd/{api,bot,migrate,eval}
+├── cmd/{api,bot,migrate,eval,mcp}
 ├── internal/
 │   ├── expense/     домен: трата, категории, деньги, сервис, UserScope
 │   ├── user/        члены семьи
@@ -78,6 +78,7 @@ backend/
 │   ├── llm/         свой клиент Chat Completions (ретраи, таймауты)
 │   ├── agent/       цикл tool calling, системный промпт, тулы, память диалога
 │   ├── telegram/    адаптер Telegram ↔ агент, whitelist семьи
+│   ├── mcpserver/   те же тулы по Model Context Protocol
 │   └── eval/        прогон агента на наборе сценариев
 ├── api/openapi.yaml
 └── eval/            сценарии (cases.yaml) и отчёты
@@ -133,6 +134,31 @@ make eval ARGS="-runs 3 -tags update,delete"
 
 **Почему DeepSeek**: доступен из России, дёшев, OpenAI-совместимый API с tool calling, стабильно 100% на наборе. Открытые веса (MIT) — при требованиях 152-ФЗ та же модель разворачивается в своём контуре сменой `LLM_BASE_URL`. Облачный API означает трансграничную передачу данных — это нужно учитывать.
 
+## MCP-сервер
+
+Те же 5 тулов, что у бота, доступны любому MCP-клиенту (Claude Desktop, MCP Inspector, другой агент): [`internal/mcpserver`](backend/internal/mcpserver/server.go) — тонкий адаптер над реестром тулов, без своей бизнес-логики. Схемы, валидация и тексты ошибок — общие с ботом. Клиент работает от имени одного члена семьи (`MCP_TELEGRAM_ID` в `.env`, он должен хотя бы раз написать боту) — изоляция та же: чужие траты для него не существуют.
+
+```bash
+# в .env: MCP_TELEGRAM_ID=<ваш Telegram ID>
+docker compose --profile mcp run --rm -T mcp   # stdio: JSON-RPC в stdout, логи в stderr
+```
+
+Claude Desktop (`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "family-expenses": {
+      "command": "docker",
+      "args": ["compose", "-f", "/полный/путь/к/family-expenses-ai-bot/docker-compose.yml",
+               "--profile", "mcp", "run", "--rm", "-T", "mcp"]
+    }
+  }
+}
+```
+
+После этого в Claude Desktop можно писать «запиши кофе 350» или «сколько я потратил на еду в октябре». MCP Inspector: `npx @modelcontextprotocol/inspector docker compose --profile mcp run --rm -T mcp`. Тулы `list_expenses` и `summarize_expenses` помечены как read-only — клиент может не спрашивать подтверждения; сегодняшняя дата и часовой пояс передаются клиенту в `instructions` при подключении (у бота они в системном промпте).
+
 ## Тесты и проверки
 
 ```bash
@@ -167,4 +193,4 @@ npm ci && npm run typecheck && npm run lint && npm test && npm run build
 
 ## Что дальше
 
-Авторизация панели через Telegram Login, soft-delete с «отменить», eval в CI на каждый PR, self-hosted модель крупнее (Qwen 2.5 7–14B / DeepSeek на GPU), MCP-сервер с теми же тулами, бюджеты и уведомления, голос и фото чеков. Полный список — [`ai-context/future-improvements.md`](ai-context/future-improvements.md).
+Авторизация панели через Telegram Login, soft-delete с «отменить», eval в CI на каждый PR, self-hosted модель крупнее (Qwen 2.5 7–14B / DeepSeek на GPU), бюджеты и уведомления, голос и фото чеков. Полный список — [`ai-context/future-improvements.md`](ai-context/future-improvements.md).

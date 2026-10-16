@@ -18,3 +18,16 @@
 
 ## Коммит
 `feat(mcp): expose expense tools via MCP server`
+
+## Итог реализации (2026-10-16) — ✅ готово
+
+- `internal/mcpserver` — адаптер над `tools.Registry` на официальном `modelcontextprotocol/go-sdk` v1.8.0: каждый тул регистрируется с той же схемой (`json.RawMessage`) и описанием, вызов идёт через `Registry.Call` — та же валидация и тексты ошибок; ошибки — tool result с `isError`, не протокольные. **Бизнес-логики в адаптере нет.**
+- `instructions` при подключении: чьи траты, часовой пояс, сегодняшняя дата, как менять/удалять (у бота это в системном промпте). Аннотации: `readOnlyHint` для `list`/`summarize` (новое поле `tools.Tool.ReadOnly`), `openWorldHint: false`.
+- `cmd/mcp` — stdio, логи в stderr; `MCP_TELEGRAM_ID` (конфиг валидируется) должен быть зарегистрированным членом семьи, иначе понятная ошибка при старте.
+- compose: сервис `mcp` в профиле `mcp` (`docker compose --profile mcp run --rm -T mcp`), `.env.example`, README — раздел с конфигом Claude Desktop и MCP Inspector.
+- Проверено: тесты через in-memory транспорт SDK (клиент видит 5 тулов со схемами и описаниями реестра, read-only подсказки; instructions; вызовы пишут траты нужному пользователю; плохие аргументы и чужой id — tool error, чужая трата цела); конфиг-тесты; **живой прогон по stdio в Docker против Postgres** (initialize → tools/list → summarize → delete чужого id); `golangci-lint` — 0; полный набор бэкенда с integration — зелёный.
+
+Отличия от плана:
+- Проверка «MCP Inspector видит 5 тулов» заменена тестом с настоящим MCP-клиентом SDK + ручным JSON-RPC по stdio (Inspector требует Node, локально его нет). Команда для Inspector — в README.
+- Только stdio; Streamable HTTP — в будущее (нужна авторизация и пользователь из токена).
+- Траты через MCP получают `source = bot` (D56).
