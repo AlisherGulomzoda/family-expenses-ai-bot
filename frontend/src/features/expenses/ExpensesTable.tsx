@@ -10,7 +10,7 @@ import {
   RotateCcw,
   Trash2,
 } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 
 import type { Expense } from '@/api/client'
 import { PAGE_SIZE, useExpenses } from '@/api/hooks'
@@ -109,6 +109,15 @@ export function ExpensesTable({ view, onChange, onResetFilters, onAdd, onEdit, o
     page: view.page,
   })
   const ctx: Ctx = { view, onChange, onEdit, onDelete }
+
+  // A page past the end (the last expense on it was deleted, or an old link):
+  // go to the last page that has expenses.
+  const lastPage = list.data ? Math.max(1, Math.ceil(list.data.total / PAGE_SIZE)) : undefined
+  useEffect(() => {
+    if (lastPage !== undefined && !list.isPlaceholderData && view.page > lastPage) {
+      onChange({ page: lastPage })
+    }
+  }, [lastPage, list.isPlaceholderData, view.page, onChange])
 
   if (list.isError && !list.data) {
     return (

@@ -30,8 +30,10 @@ import { cn } from '@/lib/utils'
 import { CATEGORIES, CATEGORY_CODES, isCategoryCode, type CategoryCode } from '@/shared/categories'
 import { formatDayLabel, fromISODate, toISODate } from '@/shared/dates'
 import { formatRub } from '@/shared/money'
+import { capitalize } from '@/shared/text'
 import { initials } from '@/shared/people'
 
+import { DeleteExpenseDialog } from './DeleteExpenseDialog'
 import {
   API_FIELDS,
   defaultMember,
@@ -51,12 +53,10 @@ type Props = {
   onClose: () => void
   /** Member of the current filter: the default for a new expense. */
   filterUserId?: number
-  /** «Удалить» in the edit dialog (the confirmation is FE-07). */
-  onDelete?: (e: Expense) => void
 }
 
 /** Create and edit dialog (design: ExpenseDialog, DialogNew, DialogErrors, DialogEdit). */
-export function ExpenseFormDialog({ editor, onClose, filterUserId, onDelete }: Props) {
+export function ExpenseFormDialog({ editor, onClose, filterUserId }: Props) {
   return (
     <Dialog open={editor !== null} onOpenChange={(open) => !open && onClose()}>
       {editor && (
@@ -67,7 +67,6 @@ export function ExpenseFormDialog({ editor, onClose, filterUserId, onDelete }: P
             editor={editor}
             filterUserId={filterUserId}
             onDone={onClose}
-            onDelete={onDelete}
           />
         </DialogContent>
       )}
@@ -79,10 +78,11 @@ type FormProps = {
   editor: Editor
   filterUserId?: number
   onDone: () => void
-  onDelete?: (e: Expense) => void
 }
 
-function ExpenseForm({ editor, filterUserId, onDone, onDelete }: FormProps) {
+function ExpenseForm({ editor, filterUserId, onDone }: FormProps) {
+  // The delete confirmation opens on top of this dialog; cancelling it returns here.
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const users = useUsers()
   const create = useCreateExpense()
   const update = useUpdateExpense()
@@ -273,12 +273,12 @@ function ExpenseForm({ editor, filterUserId, onDone, onDelete }: FormProps) {
       )}
 
       <DialogFooter className="items-center gap-2 sm:justify-between">
-        {editing && onDelete ? (
+        {editing ? (
           <Button
             type="button"
             variant="ghost"
             className="text-destructive hover:text-destructive sm:mr-auto"
-            onClick={() => onDelete(editing)}
+            onClick={() => setConfirmDelete(true)}
           >
             Удалить
           </Button>
@@ -301,6 +301,16 @@ function ExpenseForm({ editor, filterUserId, onDone, onDelete }: FormProps) {
           </Button>
         </div>
       </DialogFooter>
+
+      {/* Rendered inside this dialog's React tree, so Radix treats it as a nested
+          layer: clicks in the confirmation do not dismiss the edit dialog. */}
+      {editing && (
+        <DeleteExpenseDialog
+          expense={confirmDelete ? editing : null}
+          onClose={() => setConfirmDelete(false)}
+          onDeleted={onDone}
+        />
+      )}
     </form>
   )
 }
@@ -430,8 +440,4 @@ function showFieldErrors(err: unknown, form: UseFormReturn<FormValues>): boolean
     }
   }
   return shown
-}
-
-function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1)
 }
