@@ -68,6 +68,29 @@ func New(client llm.Client, reg *tools.Registry, expenses Expenses, history Hist
 // Messages of one user are handled one at a time, so their turns never
 // interleave in the history.
 func (a *Agent) Handle(ctx context.Context, u user.User, text string) (string, error) {
+	res, err := a.Run(ctx, u, text)
+	return res.Reply, err
+}
+
+// ToolTrace is one tool call made during a turn.
+type ToolTrace struct {
+	Name      string
+	Arguments string
+	// Error is set when the tool returned an error to the model.
+	Error string
+}
+
+// Result is the reply and the trace of one turn (used by the evaluation suite).
+type Result struct {
+	Reply    string
+	Steps    int
+	Tools    []ToolTrace
+	Usage    llm.Usage
+	Duration time.Duration
+}
+
+// Run is Handle with the trace of the turn.
+func (a *Agent) Run(ctx context.Context, u user.User, text string) (Result, error) {
 	unlock := a.lock(u.TelegramID)
 	defer unlock()
 
@@ -75,18 +98,27 @@ func (a *Agent) Handle(ctx context.Context, u user.User, text string) (string, e
 	scope := a.expenses.ForUser(u.TelegramID)
 	t := &turn{agent: a, scope: scope, userID: u.TelegramID}
 	reply, err := t.run(ctx, u, text)
+	res := Result{Reply: reply, Steps: t.steps, Tools: t.tools, Usage: t.usage, Duration: time.Since(start)}
 
+	names := make([]string, len(t.tools))
+	failed := 0
+	for i, tc := range t.tools {
+		names[i] = tc.Name
+		if tc.Error != "" {
+			failed++
+		}
+	}
 	a.log.InfoContext(ctx, "agent turn",
 		"user_id", u.TelegramID,
-		"steps", t.steps,
-		"tools", t.toolNames,
-		"tool_errors", t.toolErrors,
-		"prompt_tokens", t.usage.PromptTokens,
-		"completion_tokens", t.usage.CompletionTokens,
-		"duration_ms", time.Since(start).Milliseconds(),
+		"steps", res.Steps,
+		"tools", names,
+		"tool_errors", failed,
+		"prompt_tokens", res.Usage.PromptTokens,
+		"completion_tokens", res.Usage.CompletionTokens,
+		"duration_ms", res.Duration.Milliseconds(),
 		"error", err,
 	)
-	return reply, err
+	return res, err
 }
 
 func (a *Agent) lock(userID int64) func() {
@@ -103,13 +135,12 @@ func (a *Agent) lock(userID int64) func() {
 
 // turn is the state of handling one user message.
 type turn struct {
-	agent      *Agent
-	scope      expense.UserScope
-	userID     int64
-	steps      int
-	toolNames  []string
-	toolErrors int
-	usage      llm.Usage
+	agent  *Agent
+	scope  expense.UserScope
+	userID int64
+	steps  int
+	tools  []ToolTrace
+	usage  llm.Usage
 }
 
 func (t *turn) run(ctx context.Context, u user.User, text string) (string, error) {
@@ -148,7 +179,7 @@ func (t *turn) run(ctx context.Context, u user.User, text string) (string, error
 			reply := resp.Message.Content
 			if reply == "" {
 				reply = replyNotUnderstood
-				if len(t.toolNames) > 0 {
+				if len(t.tools) > 0 {
 					reply = replyDone
 				}
 			}
@@ -157,9 +188,9 @@ func (t *turn) run(ctx context.Context, u user.User, text string) (string, error
 
 		for _, call := range resp.Message.ToolCalls {
 			res := a.tools.Call(ctx, t.scope, call.Name, call.Arguments)
-			t.toolNames = append(t.toolNames, call.Name)
+			trace := ToolTrace{Name: call.Name, Arguments: call.Arguments}
 			if res.Err != nil {
-				t.toolErrors++
+				trace.Error = res.Err.Error()
 				level := slog.LevelWarn
 				if res.Internal {
 					level = slog.LevelError
@@ -167,6 +198,7 @@ func (t *turn) run(ctx context.Context, u user.User, text string) (string, error
 				a.log.Log(ctx, level, "tool call failed",
 					"user_id", t.userID, "tool", call.Name, "arguments", call.Arguments, "error", res.Err)
 			}
+			t.tools = append(t.tools, trace)
 			toolMsg := llm.Message{Role: llm.RoleTool, ToolCallID: call.ID, Content: res.Content}
 			msgs = append(msgs, toolMsg)
 			newMsgs = append(newMsgs, toolMsg)

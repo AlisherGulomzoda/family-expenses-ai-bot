@@ -28,6 +28,8 @@ type promptData struct {
 	MonthEnd      string
 	PrevMonthFrom string
 	PrevMonthTo   string
+	// LastWeek is "суббота: 2026-10-10" for each of the 7 days before today.
+	LastWeek []string
 }
 
 var weekdays = [...]string{"воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"}
@@ -53,6 +55,10 @@ func systemPrompt(userName, timezone string, today time.Time) (string, error) {
 		MonthEnd:      monthStart.AddDate(0, 1, -1).Format(day),
 		PrevMonthFrom: prevMonthStart.Format(day),
 		PrevMonthTo:   monthStart.AddDate(0, 0, -1).Format(day),
+	}
+	for i := 7; i >= 1; i-- {
+		d := today.AddDate(0, 0, -i)
+		data.LastWeek = append(data.LastWeek, weekdays[d.Weekday()]+": "+d.Format(day))
 	}
 	var b bytes.Buffer
 	if err := promptTmpl.Execute(&b, data); err != nil {
