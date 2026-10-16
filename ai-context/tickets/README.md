@@ -26,7 +26,7 @@
 
 | ID | Тикет | Зависит от | Оценка | Статус |
 |---|---|---|---|---|
-| [FE-01](FE-01-skeleton.md) | Каркас: Vite, Tailwind v4, shadcn/ui, тема, Onest | — | 2.5 ч | ⚪ |
+| [FE-01](FE-01-skeleton.md) | Каркас: Vite, Tailwind v4, shadcn/ui, тема, Onest | — | 2.5 ч | ✅ |
 | [FE-02](FE-02-api-layer.md) | Слой API, MSW-моки, форматтеры, категории | FE-01, BE-03 | 2.5 ч | ⚪ |
 | [FE-03](FE-03-layout-filters.md) | Каркас страницы, шапка, URL-состояние, фильтры | FE-02 | 3 ч | ⚪ |
 | [FE-04](FE-04-summary.md) | Сводка и «По категориям» | FE-03 | 1.5 ч | ⚪ |

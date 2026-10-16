@@ -1,0 +1,179 @@
+/* Theme from the design spec (ai-context/design/design-spec.md §1), taken 1:1.
+   Only the theme and the category tokens are custom; components are stock shadcn/ui. */
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* Onest 400/500/600/700 from the design system, public/fonts (SIL OFL 1.1) */
+@font-face {
+  font-family: 'Onest';
+  src: url('/fonts/Onest-400.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Onest';
+  src: url('/fonts/Onest-500.woff2') format('woff2');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Onest';
+  src: url('/fonts/Onest-600.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Onest';
+  src: url('/fonts/Onest-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: #f6f7f5;
+  --foreground: #172120;
+  --card: #ffffff;
+  --card-foreground: #172120;
+  --popover: #ffffff;
+  --popover-foreground: #172120;
+  --primary: #1d6b5a;
+  --primary-foreground: #ffffff;
+  --secondary: #eceeeb;
+  --secondary-foreground: #172120;
+  --muted: #eef0ed;
+  --muted-foreground: #5a6662;
+  --accent: #e3eeea;
+  --accent-foreground: #16463b;
+  --destructive: #c0392b;
+  --destructive-foreground: #ffffff;
+  --border: #dfe3e0;
+  --input: #85908c;
+  --ring: #1d6b5a;
+  /* categories: fill / badge background / badge text */
+  --chart-1: #d9a11c;
+  --chart-1-soft: #faf2df;
+  --chart-1-ink: #846211;
+  --chart-2: #3f5fbd;
+  --chart-2-soft: #e4e9f6;
+  --chart-2-ink: #3d5cb7;
+  --chart-3: #2f9a80;
+  --chart-3-soft: #e2f1ed;
+  --chart-3-ink: #22705d;
+  --chart-4: #8b4d86;
+  --chart-4-soft: #efe6ee;
+  --chart-4-ink: #884b83;
+  --chart-5: #b8461b;
+  --chart-5-soft: #f5e5df;
+  --chart-5-ink: #a74019;
+  --chart-6: #4fb4e8;
+  --chart-6-soft: #e6f4fc;
+  --chart-6-ink: #2f6c8b;
+  --chart-7: #4a4044;
+  --chart-7-soft: #e6e4e5;
+  --chart-7-ink: #4a4044;
+}
+
+.dark {
+  --background: #0f1312;
+  --foreground: #e7ecea;
+  --card: #171d1c;
+  --card-foreground: #e7ecea;
+  --popover: #1c2322;
+  --popover-foreground: #e7ecea;
+  --primary: #5cc2a6;
+  --primary-foreground: #06231c;
+  --secondary: #232b29;
+  --secondary-foreground: #e7ecea;
+  --muted: #1f2725;
+  --muted-foreground: #9ca8a4;
+  --accent: #1f3530;
+  --accent-foreground: #c9ebe1;
+  --destructive: #f07a6a;
+  --destructive-foreground: #2b0905;
+  --border: #2a3331;
+  --input: #66736f;
+  --ring: #5cc2a6;
+  --chart-1: #f5cf4f;
+  --chart-1-soft: #434126;
+  --chart-1-ink: #f5cf4f;
+  --chart-2: #4a85dd;
+  --chart-2-soft: #213243;
+  --chart-2-ink: #75a2e5;
+  --chart-3: #2bbb93;
+  --chart-3-soft: #1b3d34;
+  --chart-3-ink: #31bd96;
+  --chart-4: #c49af5;
+  --chart-4-soft: #3a3647;
+  --chart-4-ink: #c49af5;
+  --chart-5: #ee8a2a;
+  --chart-5-soft: #42331f;
+  --chart-5-ink: #ef8f33;
+  --chart-6: #ace3f1;
+  --chart-6-soft: #354547;
+  --chart-6-ink: #ace3f1;
+  --chart-7: #7a6c6e;
+  --chart-7-soft: #2b2d2c;
+  --chart-7-ink: #a39a9b;
+}
+
+@theme inline {
+  --font-sans: 'Onest', 'Segoe UI', Roboto, system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+  --radius-sm: calc(var(--radius) - 4px); /* 6px: badges */
+  --radius-md: calc(var(--radius) - 2px); /* 8px: buttons, inputs */
+  --radius-lg: var(--radius); /* 10px: cards, popovers */
+  --radius-xl: calc(var(--radius) + 4px); /* 14px: dialogs, drawer */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-1-soft: var(--chart-1-soft);
+  --color-chart-1-ink: var(--chart-1-ink);
+  --color-chart-2: var(--chart-2);
+  --color-chart-2-soft: var(--chart-2-soft);
+  --color-chart-2-ink: var(--chart-2-ink);
+  --color-chart-3: var(--chart-3);
+  --color-chart-3-soft: var(--chart-3-soft);
+  --color-chart-3-ink: var(--chart-3-ink);
+  --color-chart-4: var(--chart-4);
+  --color-chart-4-soft: var(--chart-4-soft);
+  --color-chart-4-ink: var(--chart-4-ink);
+  --color-chart-5: var(--chart-5);
+  --color-chart-5-soft: var(--chart-5-soft);
+  --color-chart-5-ink: var(--chart-5-ink);
+  --color-chart-6: var(--chart-6);
+  --color-chart-6-soft: var(--chart-6-soft);
+  --color-chart-6-ink: var(--chart-6-ink);
+  --color-chart-7: var(--chart-7);
+  --color-chart-7-soft: var(--chart-7-soft);
+  --color-chart-7-ink: var(--chart-7-ink);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+}

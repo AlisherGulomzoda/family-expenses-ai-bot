@@ -4,7 +4,7 @@ _Обновлено: 2026-10-16_
 
 ## Текущий этап
 
-**Этап 3 — Реализация.** Готово: **BE-01…BE-10, BE-12** ✅ (бэкенд, кроме eval). Следующий тикет — **FE-01** (каркас фронтенда), затем FE-02…FE-09, затем BE-11 (eval), FE-10, CM-01.
+**Этап 3 — Реализация.** Готово: **BE-01…BE-10, BE-12** ✅ (бэкенд, кроме eval), **FE-01** ✅. Следующий тикет — **FE-02** (слой API, MSW-моки, форматтеры), затем FE-03…FE-09, затем BE-11 (eval), FE-10, CM-01.
 
 DeepSeek: баланс пополнен, `make test-live` ✅, примеры ТЗ через агента ✅ (7/7). Бот работает в compose с DeepSeek (токен и whitelist в `.env`).
 Ollama: образ `ollama/ollama:0.40.5` и модель `qwen2.5:3b` скачаны пользователем (том `ollama-data`); сервер остановлен. Для eval понадобится `qwen2.5:7b` — **качает пользователь** (правило в `03-workflow.md`).
@@ -13,13 +13,12 @@ Ollama: образ `ollama/ollama:0.40.5` и модель `qwen2.5:3b` скач�
 |---|---|
 | Бэклоги B1–B3 (`backlog/`) | ✅ одобрены; дизайн получен, копия — `design/design-spec.md` |
 | Тикеты BE-01…13, FE-01…10, CM-01 (`tickets/README.md`) | ✅ одобрены вместе с порядком реализации |
-| Реализация | ▶️ BE-01…BE-10 ✅ (PR #1–#10), BE-12 ✅ — ждём коммит/пуш (C13) |
+| Реализация | ▶️ бэкенд ✅ (PR #1–#11), FE-01 ✅ — ждём коммит/пуш (C14) |
 
 ## Следующий шаг
 
-1. Пользователь коммитит и пушит BE-12 (C13 в `commits.md`), сливает в `main`.
-2. Пользователь при желании проверяет бота в Telegram (теперь с DeepSeek).
-3. По сигналу «продолжай» — FE-01 (ветка `feature/FE-01-skeleton`). Для фронта нужен Node.js — проверить, установлен ли; иначе всё через Docker (`node:lts-alpine`).
+1. Пользователь смотрит тему на http://localhost:4173 (контейнер `fe-preview`, `vite preview`), коммитит и пушит FE-01 (C14), сливает в `main`.
+2. По сигналу «продолжай» — FE-02. Остановить превью: `docker rm -f fe-preview`.
 
 ## Секреты
 
@@ -31,6 +30,10 @@ Ollama: образ `ollama/ollama:0.40.5` и модель `qwen2.5:3b` скач�
 - `docker compose up -d postgres migrate` — только БД + миграции; `docker compose run --rm migrate migrate status|down|reset|up`.
 - `docker compose --profile local-llm up -d ollama` — локальная LLM; живые тесты против неё: контейнер в сети `family-expenses_default` с `LLM_BASE_URL=http://ollama:11434/v1`, `LLM_MODEL=qwen2.5:3b`, `LLM_API_KEY=ollama`.
 - `docker compose down` — остановить (данные в volume `postgres-data`); `down -v` — удалить и данные.
+
+## Фронтенд без локального Node.js
+
+Всё через `node:lts-alpine` (Node 24): `docker run --rm -e CI=1 -v "<путь>/frontend:/app" -v npmcache:/root/.npm -w /app node:lts-alpine sh -c "npm run -s typecheck && npm run -s lint && npm run -s test && npm run -s build"`. `node_modules` лежит в `frontend/` (bind mount, собран под Linux). Встроенного браузера в сессии может не быть — визуальную сверку делает пользователь.
 
 ## Как проверять бэкенд на Windows
 
