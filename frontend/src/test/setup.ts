@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
+import { toast } from 'sonner'
 import { afterAll, afterEach, beforeAll } from 'vitest'
 
 import { server } from '@/mocks/node'
@@ -10,6 +11,8 @@ afterAll(() => server.close())
 
 afterEach(() => {
   cleanup()
+  // Sonner keeps toasts in a module-level store: drop them between tests.
+  toast.dismiss()
   server.resetHandlers()
   localStorage.clear()
   document.documentElement.className = ''
