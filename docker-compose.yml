@@ -62,8 +62,42 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+      # Only with the local-llm profile: wait until the model is downloaded.
+      ollama-pull:
+        condition: service_completed_successfully
+        required: false
     # Long polling: no ports, no public URL needed.
     restart: unless-stopped
 
+  # --- Optional local LLM: docker compose --profile local-llm up -d ----------
+  # Runs an open model on this machine instead of a cloud API (no key, data
+  # stays local). Set in .env: LLM_BASE_URL=http://ollama:11434/v1,
+  # LLM_MODEL=<same as OLLAMA_MODEL>, LLM_API_KEY=ollama.
+
+  ollama:
+    image: ollama/ollama:${OLLAMA_IMAGE_TAG:-0.40.5}
+    profiles: ["local-llm"]
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  ollama-pull:
+    image: ollama/ollama:${OLLAMA_IMAGE_TAG:-0.40.5}
+    profiles: ["local-llm"]
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: ollama:11434
+    # Downloads the model once (kept in the ollama-data volume).
+    entrypoint: ["ollama", "pull", "${OLLAMA_MODEL:-qwen2.5:7b}"]
+    restart: "no"
+
 volumes:
   postgres-data:
+  ollama-data:
