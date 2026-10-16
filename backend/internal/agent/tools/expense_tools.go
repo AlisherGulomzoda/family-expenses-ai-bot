@@ -80,7 +80,8 @@ func addExpense() Tool {
 
 func listExpenses() Tool {
 	return Tool{
-		Name: "list_expenses",
+		Name:     "list_expenses",
+		ReadOnly: true,
 		Description: `Find the user's expenses, newest first. Use it to show expenses ("покажи траты за неделю") ` +
 			`and to find the expense to change or delete: by comment text ("удали такси" → query "такси") ` +
 			`or the last recorded one ("последнее было не 350, а 450" → sort "created_at", limit 1). ` +
@@ -149,7 +150,8 @@ func listExpenses() Tool {
 
 func summarizeExpenses() Tool {
 	return Tool{
-		Name: "summarize_expenses",
+		Name:     "summarize_expenses",
+		ReadOnly: true,
 		Description: `Get exact totals of the user's expenses: the sum, the count and the sum per category. ` +
 			`Use it for every "сколько потратил..." question instead of adding numbers yourself.`,
 		Schema: json.RawMessage(`{

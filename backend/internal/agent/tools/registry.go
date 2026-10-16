@@ -5,8 +5,8 @@
 // Telegram update before the model is involved, and no tool schema has a
 // user field. Whatever the model writes, it can only touch that user's data.
 //
-// Tools do not depend on a protocol: the agent calls them directly and the
-// same registry could be served over MCP.
+// Tools do not depend on a protocol: the agent calls them directly and
+// internal/mcpserver serves the same registry over MCP.
 package tools
 
 import (
@@ -28,7 +28,9 @@ type Tool struct {
 	Name        string
 	Description string
 	Schema      json.RawMessage // JSON Schema of the arguments object
-	Handler     Handler
+	// ReadOnly tools only read data (MCP clients may skip asking the user).
+	ReadOnly bool
+	Handler  Handler
 }
 
 // Registry is a set of tools.

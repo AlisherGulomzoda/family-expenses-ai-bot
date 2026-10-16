@@ -69,6 +69,19 @@ services:
     # Long polling: no ports, no public URL needed.
     restart: unless-stopped
 
+  # MCP server over stdio for MCP clients (Claude Desktop, MCP Inspector):
+  #   docker compose --profile mcp run --rm -T mcp
+  # Acts on behalf of MCP_TELEGRAM_ID, who must have written to the bot once.
+  mcp:
+    <<: *backend
+    command: ["mcp"]
+    profiles: ["mcp"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    stdin_open: true
+    restart: "no"
+
   # Web panel: nginx serves the SPA and proxies /api to the api service.
   web:
     build: ./frontend

@@ -105,12 +105,27 @@ func (c Eval) validate() error {
 	return c.LLM.validate()
 }
 
+// MCP is the configuration of the MCP server. It acts on behalf of one family
+// member, like a Telegram chat with the bot.
+type MCP struct {
+	Common
+	DB
+	TelegramID int64 `env:"MCP_TELEGRAM_ID,required,notEmpty"`
+}
+
+func (c MCP) validate() error {
+	if c.TelegramID <= 0 {
+		return errors.New("MCP_TELEGRAM_ID must be a positive Telegram user ID")
+	}
+	return nil
+}
+
 type validator interface {
 	validate() error
 }
 
 // Load parses environment variables into a config of type T and validates it.
-func Load[T API | Bot | Migrate | Eval]() (T, error) {
+func Load[T API | Bot | Migrate | Eval | MCP]() (T, error) {
 	var cfg T
 	if err := env.Parse(&cfg); err != nil {
 		return cfg, fmt.Errorf("parse config: %w", err)
