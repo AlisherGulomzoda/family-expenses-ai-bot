@@ -12,4 +12,5 @@
 | C6 | `feature/BE-04-domain-service` | `feat(expense): add domain model, money type and user-scoped service` | `backend/internal/{clock,expense,user,memstore}/`, `backend/Makefile`, `ai-context/` | ✅ `5d657f0`, PR #4 |
 | C7 | `feature/BE-05-repository` | `feat(postgres): implement expense and user repositories with contract tests` | `backend/sqlc.yaml`, `backend/internal/postgres/` (queries, sqlcdb, repos, integration test), `backend/internal/expense/expensetest/`, `backend/internal/memstore/`, `go.mod/go.sum`, `Makefile`, `.gitattributes`, `ai-context/` | ✅ `8105d29`, PR #5 |
 | C8 | `feature/BE-06-rest-api` | `feat(api): implement REST API for expenses web panel` | `backend/internal/httpapi/`, `backend/cmd/api/`, `go.mod/go.sum`, `docker-compose.yml`, `.env.example`, `ai-context/` | ✅ `1c9b0de`, PR #6 |
-| C9 | `feature/BE-07-llm-client` | `feat(llm): add OpenAI-compatible LLM client with retries` | `backend/internal/llm/` (+ `llmtest/`, live test), `backend/Makefile`, `ai-context/` | ⏳ |
+| C9 | `feature/BE-07-llm-client` | `feat(llm): add OpenAI-compatible LLM client with retries` | `backend/internal/llm/` (+ `llmtest/`, live test), `backend/Makefile`, `ai-context/` | ✅ `00e4bbe`, PR #7 |
+| C10 | `feature/BE-08-agent-tools` | `feat(agent): add tool registry for expense operations` | `backend/internal/agent/tools/`, `go.mod/go.sum`, `ai-context/` | ⏳ |
