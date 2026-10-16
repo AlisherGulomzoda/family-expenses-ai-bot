@@ -1,9 +1,16 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
-import { afterEach } from 'vitest'
+import { afterAll, afterEach, beforeAll } from 'vitest'
+
+import { server } from '@/mocks/node'
+
+// Network calls in tests go to MSW; an unmocked request fails the test.
+beforeAll(() => server.listen({ onUnhandledFrame: 'error' }))
+afterAll(() => server.close())
 
 afterEach(() => {
   cleanup()
+  server.resetHandlers()
   localStorage.clear()
   document.documentElement.className = ''
 })

@@ -14,6 +14,7 @@ React 19 + TypeScript (strict) + Vite, Tailwind CSS v4, shadcn/ui (Radix), TanSt
 | `npm run lint`                    | oxlint (react, react-hooks, jsx-a11y, typescript, vitest)                          |
 | `npm run format` / `format:check` | Prettier (+ сортировка Tailwind-классов)                                           |
 | `npm test`                        | Vitest + Testing Library (jsdom)                                                   |
+| `npm run gen:api`                 | типы API из `../backend/api/openapi.yaml` → `src/api/schema.d.ts` (коммитится)     |
 
 Без локального Node.js — то же самое в Docker:
 
@@ -23,9 +24,14 @@ docker run --rm -v "$PWD:/app" -v npmcache:/root/.npm -w /app node:lts-alpine sh
 
 Dev-сервер в контейнере: `-p 127.0.0.1:5173:5173`, `-e VITE_API_PROXY_TARGET=http://host.docker.internal:8081`, команда `npx vite --host 0.0.0.0`.
 
+**Без бэкенда** — API из MSW-моков (≈40 реалистичных трат четырёх членов семьи, та же семантика фильтров, сортировки и ошибок, что у настоящего API): `VITE_API_MOCKS=true npm run dev`. В production-сборку моки не попадают.
+
 ## Структура
 
 - `src/components/ui/` — компоненты shadcn/ui, сгенерированы CLI (`npx shadcn@latest add …`), не редактируются вручную, исключены из линтера и Prettier;
 - `src/app/` — провайдеры приложения (тема, QueryClient, тултипы, тосты);
+- `src/api/` — типизированный клиент (`openapi-fetch`), `ApiError`, хуки TanStack Query (`useExpenses`, `useExpensesInfinite`, `useSummary`, `useUsers`, мутации с инвалидацией);
+- `src/mocks/` — MSW: данные (`db.ts`), обработчики (`handlers.ts`), браузер (`browser.ts`) и тесты (`node.ts`);
+- `src/shared/` — деньги (`formatRub`, `parseRubInput` — без float), даты (форматы дизайна, быстрые периоды Пн–Вс), категории (`CATEGORIES`, проверены против enum API на этапе компиляции);
 - `src/theme/` — переключатель темы;
 - `src/index.css` — тема из дизайна: токены shadcn, 7 цветов категорий (`chart-N`, `-soft`, `-ink`), радиусы, шрифт.
