@@ -12,6 +12,7 @@ import (
 
 	"github.com/AlisherGulomzoda/family-expenses-ai-bot/backend/internal/clock"
 	"github.com/AlisherGulomzoda/family-expenses-ai-bot/backend/internal/expense"
+	"github.com/AlisherGulomzoda/family-expenses-ai-bot/backend/internal/llm"
 	"github.com/AlisherGulomzoda/family-expenses-ai-bot/backend/internal/user"
 )
 
@@ -22,6 +23,7 @@ type Store struct {
 	users    map[int64]user.User
 	expenses map[int64]expense.Expense
 	nextID   int64
+	history  map[int64][]llm.Message
 }
 
 // New creates an empty store; c stamps created_at and updated_at.

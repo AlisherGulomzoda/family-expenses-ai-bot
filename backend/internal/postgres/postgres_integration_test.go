@@ -11,8 +11,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	tcpostgres "github.com/testcontainers/testcontainers-go/modules/postgres"
 
+	"github.com/AlisherGulomzoda/family-expenses-ai-bot/backend/internal/agent"
+	"github.com/AlisherGulomzoda/family-expenses-ai-bot/backend/internal/agent/agenttest"
 	"github.com/AlisherGulomzoda/family-expenses-ai-bot/backend/internal/expense/expensetest"
 	"github.com/AlisherGulomzoda/family-expenses-ai-bot/backend/internal/postgres"
+	"github.com/AlisherGulomzoda/family-expenses-ai-bot/backend/internal/user"
 )
 
 // Integration tests run against a real PostgreSQL in Docker:
@@ -83,6 +86,19 @@ func truncate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("truncate: %v", err)
 	}
+}
+
+func TestHistoryContract(t *testing.T) {
+	agenttest.RunHistoryContract(t, func(t *testing.T) agent.History {
+		truncate(t)
+		users := postgres.NewUserRepo(pool)
+		for _, id := range []int64{agenttest.UserA, agenttest.UserB} {
+			if _, err := users.Upsert(context.Background(), user.User{TelegramID: id, Name: "test"}); err != nil {
+				t.Fatal(err)
+			}
+		}
+		return postgres.NewChatHistoryRepo(pool)
+	})
 }
 
 func TestRepositoryContract(t *testing.T) {
