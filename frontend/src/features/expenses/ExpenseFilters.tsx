@@ -11,7 +11,7 @@ import { CATEGORIES, CATEGORY_CODES, isCategoryCode } from '@/shared/categories'
 import { initials } from '@/shared/people'
 import { formatPeriod, matchPreset, PERIOD_PRESETS, presetPeriod, type PeriodPreset } from '@/shared/dates'
 
-import { PeriodCalendar } from './PeriodCalendar'
+import { PeriodCalendar } from './lazy'
 import { defaultPeriod, hasDefaultFilters, type ExpensesView, type ViewPatch } from './urlState'
 
 const ALL = 'all'

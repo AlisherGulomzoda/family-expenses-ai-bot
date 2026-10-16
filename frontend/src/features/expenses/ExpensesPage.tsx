@@ -7,8 +7,9 @@ import { useIsDesktop } from '@/shared/useMediaQuery'
 import { DeleteExpenseDialog } from './DeleteExpenseDialog'
 import { ExpenseCards } from './ExpenseCards'
 import { ExpenseFilters } from './ExpenseFilters'
-import { ExpenseFormDialog, type Editor } from './ExpenseFormDialog'
+import type { Editor } from './ExpenseFormDialog'
 import { ExpensesTable } from './ExpensesTable'
+import { ExpenseFormDialog } from './lazy'
 import { MobileFilters } from './MobileFilters'
 import { FloatingAddButton, PageHeader } from './PageHeader'
 import { SummarySection } from './SummarySection'
@@ -36,7 +37,7 @@ export function ExpensesPage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-[1280px] flex-col gap-4 px-4 py-4 md:gap-6 md:px-6 md:py-6 lg:px-8">
+    <main className="mx-auto flex max-w-[1280px] flex-col gap-4 px-4 py-4 md:gap-6 md:px-6 md:py-6 lg:px-8">
       {isDesktop ? (
         <>
           <PageHeader onAdd={add} />
@@ -54,6 +55,6 @@ export function ExpensesPage() {
       {!isDesktop && <FloatingAddButton onAdd={add} />}
       <ExpenseFormDialog editor={editor} onClose={() => setEditor(null)} filterUserId={view.userId} />
       <DeleteExpenseDialog expense={toDelete} onClose={() => setToDelete(null)} />
-    </div>
+    </main>
   )
 }
