@@ -1,7 +1,9 @@
 import { useState } from 'react'
 
+import type { Expense } from '@/api/client'
 import type { ExpenseFilters as Filters } from '@/api/hooks'
 
+import { DeleteExpenseDialog } from './DeleteExpenseDialog'
 import { ExpenseFilters } from './ExpenseFilters'
 import { ExpenseFormDialog, type Editor } from './ExpenseFormDialog'
 import { ExpensesTable } from './ExpensesTable'
@@ -13,6 +15,7 @@ import { defaultPeriod, hasDefaultFilters, useExpensesView } from './urlState'
 export function ExpensesPage() {
   const [view, update] = useExpensesView()
   const [editor, setEditor] = useState<Editor | null>(null)
+  const [toDelete, setToDelete] = useState<Expense | null>(null)
   const filters: Filters = { userId: view.userId, from: view.from, to: view.to, category: view.category }
   const resetFilters = () => update({ userId: undefined, category: undefined, ...defaultPeriod() })
   const add = () => setEditor({ mode: 'create' })
@@ -28,9 +31,10 @@ export function ExpensesPage() {
         onResetFilters={hasDefaultFilters(view) ? undefined : resetFilters}
         onAdd={add}
         onEdit={(expense) => setEditor({ mode: 'edit', expense })}
-        // Deleting with confirmation is wired in FE-07.
+        onDelete={setToDelete}
       />
       <ExpenseFormDialog editor={editor} onClose={() => setEditor(null)} filterUserId={view.userId} />
+      <DeleteExpenseDialog expense={toDelete} onClose={() => setToDelete(null)} />
     </div>
   )
 }
