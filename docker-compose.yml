@@ -56,5 +56,14 @@ services:
       retries: 10
     restart: unless-stopped
 
+  bot:
+    <<: *backend
+    command: ["bot"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    # Long polling: no ports, no public URL needed.
+    restart: unless-stopped
+
 volumes:
   postgres-data:

@@ -17,7 +17,7 @@
 | [BE-07](BE-07-llm-client.md) | LLM-клиент (OpenAI-совместимый, DeepSeek) | BE-01 | 2 ч | ✅ (живая проверка ⏳ — баланс) |
 | [BE-08](BE-08-agent-tools.md) | Реестр тулов агента | BE-04, BE-07 | 2.5 ч | ✅ |
 | [BE-09](BE-09-agent-loop.md) | Агентский цикл, системный промпт, память диалога (+ хранилище истории из BE-05) | BE-05, BE-08 | 3.5 ч | ✅ |
-| [BE-10](BE-10-telegram-bot.md) | Telegram-бот `cmd/bot` | BE-09 | 2 ч | ⚪ |
+| [BE-10](BE-10-telegram-bot.md) | Telegram-бот `cmd/bot` | BE-09 | 2 ч | ✅ (диалог с LLM ⏳ — баланс) |
 | [BE-11](BE-11-eval.md) | Eval-набор и `cmd/eval`, прогон на моделях | BE-09 | 3 ч | ⚪ |
 | [BE-12](BE-12-compose-final.md) | Финальный compose: api, bot, профиль `local-llm` | BE-06, BE-10 | 1.5 ч | ⚪ |
 | [BE-13](BE-13-mcp-optional.md) | (опционально) MCP-сервер на тех же тулах | BE-08 | 2 ч | ⚪ |
